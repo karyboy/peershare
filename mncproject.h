@@ -11,6 +11,8 @@
 #include <sys/select.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 struct cnxn{
 	int id;
