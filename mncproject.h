@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <string>
+#include <vector>
 
 struct cnxn{
 	int id;

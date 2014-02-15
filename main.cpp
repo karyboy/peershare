@@ -24,20 +24,20 @@ void getData(int);
 void registerWithServer();
 //
 
-void handleCommand(char cmd[100]){
-	printf("->%s",cmd);
-	if(!strcmp(cmd, "help")){
+void handleCommand(char ccmd[100]){
+	std::string cmd=std::string(ccmd);
+	if(cmd.compare("help")==0){
 		printf("\nAvailable Commands\n1- HELP (List Commands)\n2- MYIP (Show My IP Address)\n3- MYPORT (Show My Port)\n4- REGISTER <server IP><port no> ()\n5- CONNECT <destination><port> ()\n6- LIST (List all connections with details)\n7- TERMINATE <connection_id> (Terminate a connection)\n8- EXIT (exit the process)\n9- UPLOAD <connection_id> <filename> (upload this file)\n10-DOWNLOAD <connection id 1 ><file><connection id 2><file2> <connection id 3><file3>\n11-Creator of this software\n\n");
 		//handleCommand();
 	}
-	else if(!strcmp(cmd, "myip")){
+	else if(cmd.compare("myip")==0){
 
 	}
-	else if(!strcmp(cmd, "myport")){
+	else if(cmd.compare("myport")==0){
 		printf("\nMy current Port is %s\n", port);
 		//handleCommand();
 	}
-	else if(!strcmp(cmd, "register")){
+	else if(cmd.compare("register")==0){
 		if(role=='c'){
 			registerWithServer();
 		}
@@ -45,27 +45,27 @@ void handleCommand(char cmd[100]){
 			printf("You need to be a client to use this command\n");
 		}
 	}
-	else if(!strcmp(cmd, "connect")){
+	else if(cmd.compare("connect")==0){
 		
 	}
-	else if(!strcmp(cmd, "list")){
+	else if(cmd.compare("list")==0){
 		
 	}
-	else if(!strcmp(cmd, "terminate")){
+	else if(cmd.compare("terminate")==0){
 		
 	}
-	else if(!strcmp(cmd, "exit")){
+	else if(cmd.compare("exit")==0){
 		printf("Exiting the Program, Bye!\n");
 		close(listenfd);
 		exit(1);
 	}
-	else if(!strcmp(cmd, "upload")){
+	else if(cmd.compare("upload")==0){
 		
 	}
-	else if(!strcmp(cmd, "download")){
+	else if(cmd.compare("download")==0){
 		
 	}
-	else if(!strcmp(cmd, "creator")){
+	else if(cmd.compare("creator")==0){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
 		//handleCommand();
 	}
@@ -286,6 +286,7 @@ void registerWithServer(){
    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
    int data=write(sockfd,msg,strlen(msg));
 	printf("reg with server--%d--%d\n", sockfd,data);
+	close(sockfd);
 }
 
 void boot(){
