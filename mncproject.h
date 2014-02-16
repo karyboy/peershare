@@ -19,6 +19,22 @@
 
 using namespace std;
 
+char port[10];
+char role;
+string myip;
+string serverip;
+string serverport;
+int connlist[10];
+struct addrinfo ai;
+struct sockaddr_storage conns;
+struct addrinfo *res;
+int listenfd;
+int maxsock;
+fd_set fdreads,fdmain,fdwrites;
+socklen_t conn_size;
+
+char buf[100];
+
 vector < vector<string> > connections;
 
 vector<string> addConnection(string ipaddr,string port){
@@ -69,6 +85,55 @@ string getIpPeer(int fd){
     return pipaddr;
 }
 
+string getIpMy(int fd){
+	struct sockaddr_storage peername;
+	socklen_t plen=sizeof(peername);
+	char pipaddr[INET6_ADDRSTRLEN];
+	getsockname(fd, (struct sockaddr *)&peername, &plen);
+	struct sockaddr_in *s = (struct sockaddr_in *)&peername;
+    //port = ntohs(s->sin_port);
+    inet_ntop(AF_INET, &s->sin_addr, pipaddr, sizeof pipaddr); 
+    cout<<fd<<"{===="<<pipaddr<<"}";
+    return pipaddr;
+}
+
+string getMyIp() 
+{
+   char buffer[INET_ADDRSTRLEN];
+   string ipaddr="8.8.8.8";
+   string porta="53";
+    // int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    
+    // const char* kGoogleDnsIp = "8.8.8.8";
+    // uint16_t kDnsPort = 53;
+    // struct sockaddr_in serv;
+    // memset(&serv, 0, sizeof(serv));
+    // serv.sin_family = AF_INET;
+    // serv.sin_addr.s_addr = inet_addr(kGoogleDnsIp);
+    // serv.sin_port = htons(kDnsPort);
+    // int err = connect(sock, (const sockaddr*) &serv, sizeof(serv));
+    sockaddr_in name;
+    socklen_t namelen = sizeof(name);
+    // err = getsockname(sock, (sockaddr*) &name, &namelen);
+    // const char* p = inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
+    // printf("%s\n",buffer );
+    // close(sock);
+    struct sockaddr_in servaddr,cliaddr;
+	int sockfd=socket(AF_INET,SOCK_DGRAM,0);
+    bzero(&servaddr,sizeof(servaddr));
+    int optval=1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
+    servaddr.sin_port=htons(atoi(porta.c_str()));
+    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    getsockname(sockfd, (sockaddr*) &name, &namelen);
+    inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
+    //printf("_______%s\n",buffer );
+    close(sockfd);
+    return string(buffer);
+}
+
 void traverseConnections(){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
@@ -96,7 +161,8 @@ void formPeerVector(string str){
 		string ip=tmp.substr(0,subpos);
 		string port=tmp.substr(subpos+1,str.length());
 		//cout<<ip<<"-"<<port<<"\n";
-		addConnection(ip, port);
+		if(ip!=myip && port!=string(::port))
+		   addConnection(ip, port);
 	}
 }
 

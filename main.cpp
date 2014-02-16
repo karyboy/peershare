@@ -1,21 +1,7 @@
 #include "mncproject.h"
 #define arg_no 3
-;char port[10];
-char role;
-char *myip;
-char *myport;
-string serverip;
-string serverport;
-int connlist[10];
-struct addrinfo ai;
-struct sockaddr_storage conns;
-struct addrinfo *res;
-int listenfd;
-int maxsock;
-fd_set fdreads,fdmain,fdwrites;
-socklen_t conn_size;
+;
 
-char buf[100];
 int handleNewConnection();
 void redoFDSET();
 void getData(int);
@@ -35,7 +21,7 @@ void handleCommand(char ccmd[100]){
 		//handleCommand();
 	}
 	else if(cmd.compare("myip")==0){
-
+		cout<<"My ip address is "<<myip<<"\n";
 	}
 	else if(cmd.compare("myport")==0){
 		printf("\nMy current Port is %s\n", port);
@@ -56,7 +42,7 @@ void handleCommand(char ccmd[100]){
 		
 	}
 	else if(cmd.compare("list")==0){
-		
+		traverseConnections();
 	}
 	else if(cmd.compare("terminate")==0){
 		
@@ -236,29 +222,46 @@ int handleNewConnection(){
 }
 
 void registerWithServer(string ipaddr,string porta){
-	serverip=ipaddr;
-	serverport=porta;
-	struct sockaddr_in servaddr,cliaddr;
-	string msg="port_"+string(port);
-	int sockfd=socket(AF_INET,SOCK_STREAM,0);
-   bzero(&servaddr,sizeof(servaddr));
-   int optval=1;
-	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-   servaddr.sin_family = AF_INET;
-   servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
-   servaddr.sin_port=htons(atoi(porta.c_str()));
-   connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
-   shutdown(sockfd, SHUT_WR);
-   char closebuf[100];
-   while(1){
-   		int res=read(sockfd,closebuf,sizeof(closebuf));
-   		cout<<"~~"<<res<<"~~";
-   		if(!res)
-   			break;
+   serverip=ipaddr;
+   serverport=porta;
+   struct addrinfo hints, *re;
+   memset(&hints, 0, sizeof hints);
+   hints.ai_family = AF_UNSPEC;
+   hints.ai_socktype = SOCK_STREAM;
+   hints.ai_flags=AI_PASSIVE;
+   int outa=getaddrinfo(ipaddr.c_str(), porta.c_str(), &hints, &re);
+   //cout<<outa<<"}}}}}\n";
+   //struct sockaddr_in servaddr;
+   string msg="port_"+string(port);
+   int sockfd=socket(re->ai_family,re->ai_socktype,re->ai_protocol);
+   //int sockfd=socket(AF_INET,SOCK_STREAM,0);
+   //bzero(&servaddr,sizeof(servaddr));
+   //int optval=1;
+   //setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+   //servaddr.sin_family = AF_INET;
+   // servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
+   // servaddr.sin_port=htons(atoi(porta.c_str()));
+   int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
+   //int conn=connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+   if(conn>-1){
+   		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+	   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
+	   shutdown(sockfd, SHUT_WR);
+	   char closebuf[100];
+	   while(1){
+	   		int r=read(sockfd,closebuf,sizeof(closebuf));
+	   		cout<<"~~"<<r<<"~~";
+	   		if(!r)
+	   			break;
+	   }
+	   close(sockfd);	
    }
-   close(sockfd);
+   else{
+
+   		cout<<"Connection error -- "<<strerror(errno);
+   		close(sockfd);
+   }
+   
    
 }
 
@@ -296,7 +299,7 @@ void sendMsg(string ipaddr,string porta,string msg){
 }
 
 void boot(){
-	
+	myip=getMyIp();
 	for(int i=0;i<10;i++)
 		connlist[i]=-2;
 }
