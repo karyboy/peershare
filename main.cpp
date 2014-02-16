@@ -87,7 +87,7 @@ int listener(){
 	maxsock=listenfd;
 	int b=bind(listenfd,res->ai_addr,res->ai_addrlen);
 	if(b==-1){
-		printf("%s\n", strerror(errno));
+		printf("error hai- %s\n", strerror(errno));
 	}
     int l=listen(listenfd,10);
 	printf("__%d__%d__%d\n", listenfd,b,l);	
@@ -98,16 +98,16 @@ int listener(){
 
 
     while(1){
-    	printf("%d**%d**%s\n",maxsock,listenfd,buf);
+    	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
    		redoFDSET();
     	int socksel=select(maxsock+1, &fdreads, NULL, NULL, &t);
-    	printf("2-%d\n",socksel);
+    	//printf("2-%d\n",socksel);
     	if(socksel==-1){
     		perror("There has been select error");
     	}
 
     	if(socksel==0){
-    		printf("No nthing\n");
+    		//printf("No nthing\n");
     	}
     	if(socksel>0){
     		if(FD_ISSET(listenfd, &fdreads)){
