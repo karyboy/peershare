@@ -4,10 +4,9 @@
 char role;
 char *myip;
 char *myport;
-char *serverip="localhost";
-char *serverport="8080";
+string serverip;
+string serverport;
 int connlist[10];
-
 struct addrinfo ai;
 struct sockaddr_storage conns;
 struct addrinfo *res;
@@ -17,15 +16,20 @@ fd_set fdreads,fdmain,fdwrites;
 socklen_t conn_size;
 
 char buf[100];
-// prototypes
 int handleNewConnection();
 void redoFDSET();
 void getData(int);
-void registerWithServer();
+void registerWithServer(string,string);
+void assignMaxFD();
+void sendMsg(string,string,string);
+void sendCnxnList();
 //
 
 void handleCommand(char ccmd[100]){
-	std::string cmd=std::string(ccmd);
+	std::string str=std::string(ccmd);
+	std::vector<std::string> tokens=tokenize(str," ");
+	std::string cmd=tokens[0];
+	//split(tokens,cmd,is_any_of(" "));
 	if(cmd.compare("help")==0){
 		printf("\nAvailable Commands\n1- HELP (List Commands)\n2- MYIP (Show My IP Address)\n3- MYPORT (Show My Port)\n4- REGISTER <server IP><port no> ()\n5- CONNECT <destination><port> ()\n6- LIST (List all connections with details)\n7- TERMINATE <connection_id> (Terminate a connection)\n8- EXIT (exit the process)\n9- UPLOAD <connection_id> <filename> (upload this file)\n10-DOWNLOAD <connection id 1 ><file><connection id 2><file2> <connection id 3><file3>\n11-Creator of this software\n\n");
 		//handleCommand();
@@ -39,7 +43,10 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("register")==0){
 		if(role=='c'){
-			registerWithServer();
+			if(tokens[1].length()>0 && tokens[2].length()>0)
+				registerWithServer(tokens[1],tokens[2]);
+			else
+				cout<<"Parameters Missing\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
@@ -76,7 +83,7 @@ void handleCommand(char ccmd[100]){
 	//printf("The commnad is %s\n", cmd);
 }
 
-int makeServer(){
+int listener(){
 	memset(&ai, 0, sizeof ai);
 	ai.ai_flags=AI_PASSIVE;
 	ai.ai_family=AF_UNSPEC;
@@ -136,7 +143,10 @@ int makeServer(){
 	    			printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
-	    				getData(connlist[i]);
+	   					FD_CLR(connlist[i], &fdreads);
+	   					getData(connlist[i]);
+	   					connlist[i]=-2;
+	   					assignMaxFD();
 	    			}
 	    		}
 	    	}
@@ -159,76 +169,43 @@ void redoFDSET(){
 }
 
 void getData(int fd){
-	//char buf[100];
 	int data=read(fd,buf,sizeof(buf));
-	
-		printf("%d--data-%s\n",data,buf);
+	printf("%d--data-%s\n",data,buf);
+	string cmd=string(buf);
+	//cout<<"Cmd is "<<cmd<<"\n";
+	if(cmd.find("port")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.length()-cmd.find("_"));
+    	addConnection(getIpPeer(fd), p);
+    	memset(buf, 0, sizeof(buf));
+    	close(fd);
+    	traverseConnections();
+    	sendCnxnList();
+		//updatePort(string id, string port)
+	}
+	else if(cmd.find("peers")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.length()-cmd.find("_"));
+    	cout<<"peeeerrs-"<<p<<"\n";
+    	emptyConnections();
+    	formPeerVector(p);
+    	memset(buf, 0, sizeof(buf));
+    	close(fd);
+    	traverseConnections();
+    	//updatePort(string id, string port)
+	}
+	else{
+		cout<<"no relevant data\n";
 		memset(buf, 0, sizeof(buf));
+    	close(fd);
+	}
 }
 
-int makeClient(){
-	ai.ai_flags=AI_PASSIVE;
-	ai.ai_family=AF_UNSPEC;
-	ai.ai_socktype=SOCK_STREAM;
-
-	int outer=getaddrinfo(NULL,port,&ai,&res);
-	//printf("%d\n", outer);
-	struct sockaddr_in *adr = ( struct sockaddr_in *)res->ai_addr;
-
-	// char ipstr[INET6_ADDRSTRLEN];
-	// inet_ntop(res->ai_family,&(adr->sin_addr), ipstr, sizeof ipstr);
-	listenfd=socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	maxsock=listenfd;
-	int b=bind(listenfd,res->ai_addr,res->ai_addrlen);
-    int l=listen(listenfd,10);
-	
-
-	struct timeval t ;
-	t.tv_sec=5;
-	t.tv_usec=0;
-
-
-    while(1){
-    	printf("%d**%d\n",maxsock,listenfd);
-   		redoFDSET();
-    	int socksel=select(maxsock+1, &fdreads, NULL, NULL, &t);
-    	printf("2-%d\n",socksel);
-    	if(socksel==-1){
-    		perror("There has been select error");
-    	}
-
-    	if(socksel==0){
-    		printf("No nthing\n");
-    	}
-    	if(socksel>0){
-    		if(FD_ISSET(listenfd, &fdreads)){
-    			handleNewConnection();
-	    	}
-	    	if(FD_ISSET(0,&fdreads)){
-	    		int len;
-	    		char readbuff[100];
-	    		len=read(0,readbuff,sizeof(readbuff));
-	    		readbuff[len-1]='\0';
-	    		if(len>0){
-	    			//int a=strcmp("hello",readbuff);
-	    			//printf("%d-%s]]",a,readbuff);
-	    			handleCommand(readbuff);
-	    		}
-	    	}
-	    	// for(int i=0;i<10;i++){
-	    	// 	if(connlist[i]!=-2){
-	    	// 		printf("check for data--%d\n",i);
-	    	// 		if(FD_ISSET(connlist[i], &fdreads)){
-	    	// 			printf("Data incoming\n");
-	    	// 			getData(connlist[i]);
-	    	// 		}
-	    	// 	}
-	    	// }
-    	}
-
-    	
-    }
-	return 0;
+void assignMaxFD(){
+	for(int i;i<10;i++){
+		if(connlist[i]>maxsock )
+			maxsock=connlist[i];
+	}
+	if(listenfd>maxsock)
+		maxsock=listenfd;
 }
 
 void addToConnList(int fd){
@@ -249,48 +226,77 @@ int handleNewConnection(){
     printf("THere is a new connection\n");
     conn_size=sizeof conns;
     int newfd=accept(listenfd,(struct sockaddr *)&conns, &conn_size);
+    getIpPeer(newfd);
     char buf[200];
     char porta[200];
-    getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
-    printf("%s--%s\n", buf,porta);
-    addConnection(buf, porta);
-    char *msg="got it";
-    //int data=send(newfd,&msg,sizeof msg,0);
-    //printf("%d\n",data );
+    // getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
+    // printf("%s--%s\n", buf,porta);
+    // addConnection(string(buf),string(porta));
     addToConnList(newfd);
-    traverseList();
 }
 
-void registerWithServer(){
-	// struct addrinfo ai1;
-	// ai1.ai_flags=AI_PASSIVE;
-	// ai1.ai_family=AF_UNSPEC;
-	// ai1.ai_socktype=SOCK_STREAM;
-	// struct addrinfo *res1;
+void registerWithServer(string ipaddr,string porta){
+	serverip=ipaddr;
+	serverport=porta;
 	struct sockaddr_in servaddr,cliaddr;
-	// int outer=getaddrinfo(serverip,serverport,&ai1,&res1);
-	// int tmpfd=socket(res1->ai_family, res1->ai_socktype, res1->ai_protocol);
-	// int connct=connect(tmpfd,res1->ai_addr, res1->ai_addrlen);
-    char msg[100]="MNCOK";
-	//int data=write(tmpfd,msg,strlen(msg));
-	//printf("reg with server--%d--%d--%d\n", tmpfd,connct,data);
-	// /close(tmpfd);
-
+	string msg="port_"+string(port);
 	int sockfd=socket(AF_INET,SOCK_STREAM,0);
-
    bzero(&servaddr,sizeof(servaddr));
+   int optval=1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
    servaddr.sin_family = AF_INET;
-   servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
-   int porta=8080;
-   servaddr.sin_port=htons(porta);
+   servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
+   servaddr.sin_port=htons(atoi(porta.c_str()));
    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-   int data=write(sockfd,msg,strlen(msg));
-	printf("reg with server--%d--%d\n", sockfd,data);
-	close(sockfd);
+   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
+   shutdown(sockfd, SHUT_WR);
+   char closebuf[100];
+   while(1){
+   		int res=read(sockfd,closebuf,sizeof(closebuf));
+   		cout<<"~~"<<res<<"~~";
+   		if(!res)
+   			break;
+   }
+   close(sockfd);
+   
+}
+
+void sendCnxnList(){
+	string str=formPeerString();
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		cout<<"<<"<<tmp[1]<<"--"<<tmp[2]<<"--"<<str<<">>\n";
+		sendMsg(tmp[1], tmp[2], str);
+	}
+}
+
+void sendMsg(string ipaddr,string porta,string msg){
+	cout<<"("<<ipaddr<<"-"<<porta<<"-"<<msg<<"-\n";
+	struct sockaddr_in servaddr,cliaddr;
+	int sockfd=socket(AF_INET,SOCK_STREAM,0);
+    bzero(&servaddr,sizeof(servaddr));
+    int optval=1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
+    servaddr.sin_port=htons(atoi(porta.c_str()));
+    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+    printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
+    shutdown(sockfd, SHUT_WR);
+    char closebuf[100];
+	   while(1){
+	   		int res=read(sockfd,closebuf,sizeof(closebuf));
+	   		cout<<"~~"<<res<<"~~";
+	   		if(!res)
+	   			break;
+	   }
+   close(sockfd);
 }
 
 void boot(){
-	initializeList();
+	
 	for(int i=0;i<10;i++)
 		connlist[i]=-2;
 }
@@ -309,11 +315,11 @@ int main ( int argc, char *argv[]){
 		//printf("Port number is %s\n",port );
 		
 		if(role=='c'){
-			makeClient();
+			listener();
 			//printf("Its a client\n");
 		}
 		else if(role=='s'){
-			makeServer();
+			listener();
 			//printf("Its a server\n");
 		}
 		else{

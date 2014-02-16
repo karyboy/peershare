@@ -15,103 +15,112 @@
 #include <errno.h>
 #include <string>
 #include <vector>
+#include <map>
 
-struct cnxn{
-	int id;
-	char *ipaddr;
-	char *port;
-	struct cnxn *next;
-};
+using namespace std;
 
-typedef struct cnxn list;
-list *cnxnroot;
+vector < vector<string> > connections;
 
-list *addConnection(char *ipaddr,char *port){
-	printf("%s++%s\n", ipaddr,port);
-	list *tmp=cnxnroot;
-	while(tmp->next!=0){
-		tmp=tmp->next;
-	}
-	list *add=(list *)malloc(sizeof(list));
-	add->id=tmp->id+1;
-	add->ipaddr=ipaddr;
-	add->port=port;
-	add->next=0;
-	tmp->next=add;
-	return add;
+vector<string> addConnection(string ipaddr,string port){
+	vector<string> conn(3);
+	conn[1]=ipaddr;
+	conn[2]=port;
+	int id=connections.size();
+	char ids[10];
+	sprintf(ids, "%d", id);
+	conn[0]=string(ids);
+	connections.push_back(conn);
+	return conn;
 }
 
-void initializeList(){
-	cnxnroot=(list *)malloc(sizeof(list));
-	cnxnroot->id=0;
-	cnxnroot->ipaddr="0.0.0.0";
-	cnxnroot->port="0";
-	cnxnroot->next=0;
-}
-
-list *deleteConnection(int id){
-	list *tmp=cnxnroot;
-	list *prev=cnxnroot;
-	list *remd;
-	while(tmp!=0){
-		if(tmp->id==id && tmp->id!=0){
-			//printf("deleted %s\n",tmp->ipaddr );
-			remd=tmp;
-			prev->next=tmp->next;
-			break;
+vector<string> removeConnection(string id){
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		if(tmp[0]==id){
+			//cout<<"found connection";
+			connections.erase(connections.begin()+i);
 		}
-		prev=tmp;
-		tmp=tmp->next;
 	}
-	return remd;
 }
 
-char *formString(){
-	list *tmp=cnxnroot;
-	char *str=(char *)malloc(0);
-	while(tmp!=0){
-		if(tmp->id!=0){
-			 strcat(str,tmp->ipaddr);
-			 strcat(str, "~");
-			 strcat(str,tmp->port);
-			 strcat(str,"|");
+void emptyConnections(){
+	connections.clear();
+}
+
+void updatePort(string id,string port){
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		if(tmp[0]==id){
+			//cout<<"found connection";
+			connections[i][2]=port;
 		}
-		tmp=tmp->next;
+	}
+}
+
+string getIpPeer(int fd){
+	struct sockaddr_storage peername;
+	socklen_t plen=sizeof(peername);
+	char pipaddr[INET6_ADDRSTRLEN];
+	getpeername(fd, (struct sockaddr *)&peername, &plen);
+	struct sockaddr_in *s = (struct sockaddr_in *)&peername;
+    //port = ntohs(s->sin_port);
+    inet_ntop(AF_INET, &s->sin_addr, pipaddr, sizeof pipaddr); 
+    cout<<"{===="<<pipaddr<<"}";
+    return pipaddr;
+}
+
+void traverseConnections(){
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		printf("details are === %s--%s--%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str() );
+	}
+}
+
+string formPeerString(){
+	string str="peers_";
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		string tmpstr=tmp[1]+"|"+tmp[2];
+		str=str+"["+tmpstr+"]";
 	}
 	return str;
 }
 
-void formList(char *str){
-	char *ptr;
-	char arr[10][20];
-	int i=0;
-	ptr=strtok(str,"|");
-	while(ptr!=NULL){
-		strcpy(arr[i], ptr);
-		//printf("===%s\n",arr[i]);
-		i++;
-		ptr=strtok(NULL,"|");
-	}
-
-	for(int j=0;j<i;j++){
-		char *ipaddr,*port;
-		//printf("--%s\n", arr[j]);
-		ipaddr=strtok(arr[j],"~");
-		port=strtok(NULL,"~");
-		addConnection((char *)ipaddr, (char *)port);
-		//printf("%s--%s--%d\n", ipaddr,port,j);
-	}
-}
-
-void traverseList(){
-	list *tmp=cnxnroot;
-	while(tmp!=0){
-		printf("%s--%s\n",tmp->ipaddr,tmp->port);
-		tmp=tmp->next;
+void formPeerVector(string str){
+	int pos=str.find_first_of("[");
+	while(pos!=string::npos){
+		int pos1=str.find_first_of("]",pos+1);
+		string tmp=str.substr(pos+1,pos1-pos-1);
+		pos=str.find_first_of("[",pos1+1);
+		int subpos=tmp.find_first_of("|");
+		string ip=tmp.substr(0,subpos);
+		string port=tmp.substr(subpos+1,str.length());
+		//cout<<ip<<"-"<<port<<"\n";
+		addConnection(ip, port);
 	}
 }
 
 
+std::vector<std::string> tokenize(std::string str,std::string delim){
+	std::size_t f1 = str.find_first_of(delim);
+	if(f1!=std::string::npos){
+		std::size_t f2 = str.find_first_of(delim,f1+1);
+		//std::cout<<"herenow"<<f2;
+		std::vector<std::string> vect(3);
+		std::string cmd= str.substr(0,f1);
+		std::string o1= str.substr(f1+1,f2-f1-1);
+		std::string o2= str.substr(f2+1,str.length()-f2);
+		vect[0]=cmd;
+		vect[1]=o1;
+		vect[2]=o2;
+		return vect;
+	}
+	else{
+		std::vector<std::string> vect(1);
+		vect[0]=str;
+		return vect;
+	}
+}
 
 
 
