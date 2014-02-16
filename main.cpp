@@ -129,7 +129,7 @@ int listener(){
 	    			printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
-	   					FD_CLR(connlist[i], &fdreads);
+	   					//FD_CLR(connlist[i], &fdreads);
 	   					getData(connlist[i]);
 	   					connlist[i]=-2;
 	   					assignMaxFD();
@@ -164,6 +164,7 @@ void getData(int fd){
     	addConnection(getIpPeer(fd), p);
     	memset(buf, 0, sizeof(buf));
     	close(fd);
+    	FD_CLR(fd, &fdreads);
     	traverseConnections();
     	sendCnxnList();
 		//updatePort(string id, string port)
@@ -175,6 +176,7 @@ void getData(int fd){
     	formPeerVector(p);
     	memset(buf, 0, sizeof(buf));
     	close(fd);
+    	FD_CLR(fd, &fdreads);
     	traverseConnections();
     	//updatePort(string id, string port)
 	}
@@ -182,6 +184,7 @@ void getData(int fd){
 		cout<<"no relevant data\n";
 		memset(buf, 0, sizeof(buf));
     	close(fd);
+    	FD_CLR(fd, &fdreads);
 	}
 }
 
@@ -286,10 +289,11 @@ void sendMsg(string ipaddr,string porta,string msg){
     servaddr.sin_port=htons(atoi(porta.c_str()));
     connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-    printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
+    printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
     shutdown(sockfd, SHUT_WR);
     char closebuf[100];
 	   while(1){
+	   		cout<<"in while";
 	   		int res=read(sockfd,closebuf,sizeof(closebuf));
 	   		cout<<"~~"<<res<<"~~";
 	   		if(!res)
