@@ -45,7 +45,7 @@ void handleCommand(char ccmd[100]){
 		traverseConnections();
 	}
 	else if(cmd.compare("terminate")==0){
-		
+		tester();
 	}
 	else if(cmd.compare("exit")==0){
 		printf("Exiting the Program, Bye!\n");
@@ -100,7 +100,7 @@ int listener(){
     while(1){
     	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
    		redoFDSET();
-    	int socksel=select(maxsock+1, &fdreads, NULL, NULL, &t);
+    	int socksel=select(maxsock+1, &fdreads,NULL, NULL, NULL);
     	//printf("2-%d\n",socksel);
     	if(socksel==-1){
     		perror("There has been select error");
@@ -117,12 +117,19 @@ int listener(){
 	    		int len;
 	    		char readbuff[100];
 	    		len=read(0,readbuff,sizeof readbuff);
+	    		//fgets(readbuff, sizeof readbuff, 0);
 	    		readbuff[len-1]='\0';
+	    		//printf("%s\n", readbuff);
 	    		if(len>0){
+	    			if(readbuff[0]=='\n')
+	    				printf("New line\n" );
 	    			//int a=strcmp("hello",readbuff);
-	    			//printf("%d-%s]]",a,readbuff);
+	    			//printf("%s]]",len[]);
 	    			handleCommand(readbuff);
 	    		}
+	    	}
+	    	if(FD_ISSET(1, &fdwrites)){
+	    		//write(1,);
 	    	}
 	    	for(int i=0;i<10;i++){
 	    		if(connlist[i]!=-2){
@@ -147,6 +154,7 @@ void redoFDSET(){
 	FD_ZERO(&fdreads);
     FD_SET(listenfd, &fdreads);
     FD_SET(0, &fdreads);
+    FD_SET(1, &fdwrites);
 	for(int i=0;i<10;i++){
 		if(connlist[i]!=-2){
 			FD_SET(connlist[i], &fdreads);
@@ -159,7 +167,7 @@ void getData(int fd){
 	printf("%d--data-%s\n",data,buf);
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
-	if(cmd.find("port")!=string::npos){
+	if(cmd.find("reg")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.length()-cmd.find("_"));
     	addConnection(getIpPeer(fd), p);
     	memset(buf, 0, sizeof(buf));
@@ -218,8 +226,9 @@ int handleNewConnection(){
     getIpPeer(newfd);
     char buf[200];
     char porta[200];
+    inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
     // getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
-    // printf("%s--%s\n", buf,porta);
+    printf("{{%s}}\n", buf);
     // addConnection(string(buf),string(porta));
     addToConnList(newfd);
 }

@@ -30,6 +30,7 @@ struct sockaddr_storage conns;
 struct addrinfo *res;
 int listenfd;
 int maxsock;
+string test;
 fd_set fdreads,fdmain,fdwrites;
 socklen_t conn_size;
 
@@ -166,6 +167,9 @@ void formPeerVector(string str){
 	}
 }
 
+string formRegString(string ip,string port,string ){
+
+}
 
 std::vector<std::string> tokenize(std::string str,std::string delim){
 	std::size_t f1 = str.find_first_of(delim);
@@ -186,6 +190,21 @@ std::vector<std::string> tokenize(std::string str,std::string delim){
 		vect[0]=str;
 		return vect;
 	}
+}
+
+string getDomainName(char *url){
+	struct hostent *he;
+	struct in_addr ipv4addr;
+	inet_pton(AF_INET, url, &ipv4addr);
+	he = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
+	test=string(he->h_name);
+	return string(he->h_name);
+}
+
+void tester (){
+	cout<<getDomainName("8.8.8.8");
+	
+
 }
 
 
