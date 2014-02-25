@@ -223,12 +223,12 @@ int handleNewConnection(){
     printf("THere is a new connection\n");
     conn_size=sizeof conns;
     int newfd=accept(listenfd,(struct sockaddr *)&conns, &conn_size);
-    getIpPeer(newfd);
+    //getIpPeer(newfd);
     char buf[200];
     char porta[200];
     inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
     // getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
-    printf("{{%s}}\n", buf);
+    printf("{{%s++%s}}\n", buf,getDomainName(buf));
     // addConnection(string(buf),string(porta));
     addToConnList(newfd);
 }

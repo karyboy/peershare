@@ -203,8 +203,6 @@ string getDomainName(char *url){
 
 void tester (){
 	cout<<getDomainName("8.8.8.8");
-	
-
 }
 
 
