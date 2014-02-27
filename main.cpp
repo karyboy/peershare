@@ -100,7 +100,7 @@ int listener(){
     while(1){
     	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
    		redoFDSET();
-    	int socksel=select(maxsock+1, &fdreads,NULL, NULL, NULL);
+    	int socksel=select(maxsock+1, &fdreads,&fdwrites, NULL, NULL);
     	//printf("2-%d\n",socksel);
     	if(socksel==-1){
     		perror("There has been select error");
@@ -129,7 +129,7 @@ int listener(){
 	    		}
 	    	}
 	    	if(FD_ISSET(1, &fdwrites)){
-	    		//write(1,);
+	    		fflush(stdout);
 	    	}
 	    	for(int i=0;i<10;i++){
 	    		if(connlist[i]!=-2){
@@ -223,12 +223,12 @@ int handleNewConnection(){
     printf("THere is a new connection\n");
     conn_size=sizeof conns;
     int newfd=accept(listenfd,(struct sockaddr *)&conns, &conn_size);
-    //getIpPeer(newfd);
+    getIpPeer(newfd);
     char buf[200];
     char porta[200];
     inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
-    // getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
-    printf("{{%s++%s}}\n", buf,getDomainName(buf));
+    //getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
+    printf("{{%s}}\n",buf);
     // addConnection(string(buf),string(porta));
     addToConnList(newfd);
 }
