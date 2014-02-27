@@ -4,11 +4,15 @@
 
 int handleNewConnection();
 void redoFDSET();
-void getData(int);
+bool getData(int);
 void registerWithServer(string,string);
 void assignMaxFD();
 void sendMsg(string,string,string);
 void sendCnxnList();
+void connectTo(string,string,string);
+void addPermanent(string,string,int);
+void addToConnList(int);
+void sendTo(string,string);
 //
 
 void handleCommand(char ccmd[100]){
@@ -39,7 +43,17 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("connect")==0){
-		
+		if(role=='c'){
+			if(tokens[1].length()>0 && tokens[2].length()>0){
+				cout<<tokens[1]<<"--"<<tokens[2]<<endl;
+				connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
+			}
+			else
+				cout<<"Parameters Missing\n";
+		}
+		else{
+			printf("You need to be a client to use this command\n");
+		}
 	}
 	else if(cmd.compare("list")==0){
 		traverseConnections();
@@ -53,7 +67,15 @@ void handleCommand(char ccmd[100]){
 		exit(1);
 	}
 	else if(cmd.compare("upload")==0){
-		
+		if(role=='c'){
+			if(tokens[1].length()>0 && tokens[2].length()>0)
+				sendTo(tokens[1], tokens[2]);
+			else
+				cout<<"Parameters Missing\n";
+		}
+		else{
+			printf("You need to be a client to use this command\n");
+		}
 	}
 	else if(cmd.compare("download")==0){
 		
@@ -61,6 +83,9 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("creator")==0){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
 		//handleCommand();
+	}
+	else if(cmd.compare("test")==0){
+		traverseConnectd();
 	}
 	else{
 		printf("Command Not Found\n");
@@ -100,7 +125,7 @@ int listener(){
     while(1){
     	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
    		redoFDSET();
-    	int socksel=select(maxsock+1, &fdreads,&fdwrites, NULL, NULL);
+    	int socksel=select(maxsock+1, &fdreads,&fdwrites, NULL, &t);
     	//printf("2-%d\n",socksel);
     	if(socksel==-1){
     		perror("There has been select error");
@@ -138,8 +163,100 @@ int listener(){
 	    				printf("Data incoming\n");
 	   					//FD_CLR(connlist[i], &fdreads);
 	   					getData(connlist[i]);
-	   					connlist[i]=-2;
-	   					assignMaxFD();
+						connlist[i]=-2;
+		   				assignMaxFD();
+		   			}
+	    		}
+	    	}
+    	}
+
+    	
+    }
+	return 0;
+}
+
+int clistener(){
+	memset(&ai, 0, sizeof ai);
+	ai.ai_flags=AI_PASSIVE;
+	ai.ai_family=AF_UNSPEC;
+	ai.ai_socktype=SOCK_STREAM;
+
+	int outer=getaddrinfo(NULL,port,&ai,&res);
+	//printf("%d\n", outer);
+	struct sockaddr_in *adr = ( struct sockaddr_in *)res->ai_addr;
+
+	// char ipstr[INET6_ADDRSTRLEN];
+	// inet_ntop(res->ai_family,&(adr->sin_addr), ipstr, sizeof ipstr);
+	listenfd=socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	int optval=1;
+	setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+	maxsock=listenfd;
+	int b=bind(listenfd,res->ai_addr,res->ai_addrlen);
+	if(b==-1){
+		printf("error hai- %s\n", strerror(errno));
+	}
+    int l=listen(listenfd,10);
+	printf("__%d__%d__%d\n", listenfd,b,l);	
+    freeaddrinfo(res);
+	struct timeval t ;
+	t.tv_sec=5;
+	t.tv_usec=0;
+
+
+    while(1){
+    	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
+   		redoFDSET();
+    	int socksel=select(maxsock+1, &fdreads,&fdwrites, NULL, &t);
+    	//printf("2-%d\n",socksel);
+    	if(socksel==-1){
+    		perror("There has been select error");
+    	}
+
+    	if(socksel==0){
+    		//printf("No nthing\n");
+    	}
+    	if(socksel>0){
+    		if(FD_ISSET(listenfd, &fdreads)){
+    			handleNewConnection();
+	    	}
+	    	if(FD_ISSET(0,&fdreads)){
+	    		int len;
+	    		char readbuff[100];
+	    		len=read(0,readbuff,sizeof readbuff);
+	    		//fgets(readbuff, sizeof readbuff, 0);
+	    		readbuff[len-1]='\0';
+	    		//printf("%s\n", readbuff);
+	    		if(len>0){
+	    			if(readbuff[0]=='\n')
+	    				printf("New line\n" );
+	    			//int a=strcmp("hello",readbuff);
+	    			//printf("%s]]",len[]);
+	    			handleCommand(readbuff);
+	    		}
+	    	}
+	    	if(FD_ISSET(1, &fdwrites)){
+	    		fflush(stdout);
+	    	}
+	    	for(int i=0;i<10;i++){
+	    		if(connlist[i]!=-2){
+	    			//printf("check for data--%d\n",i);
+	    			if(FD_ISSET(connlist[i], &fdreads)){
+	    				printf("Data incoming\n");
+	   					//FD_CLR(connlist[i], &fdreads);
+	   					if(checkFd(connlist[i])){
+	   						cout<<"There is this connection";
+	   					}
+	   					else{
+	   						if(getData(connlist[i])){
+	   						cout<<"Permanent"<<endl;
+	   						}
+		   					else{
+		   						cout<<"Temporary"<<endl;
+								connlist[i]=-2;
+		   						assignMaxFD();
+		   					}
+	   					}
+	   					
 	    			}
 	    		}
 	    	}
@@ -162,9 +279,9 @@ void redoFDSET(){
 	}
 }
 
-void getData(int fd){
+bool getData(int fd){
 	int data=read(fd,buf,sizeof(buf));
-	printf("%d--data-%s\n",data,buf);
+	printf("data-%s\n",buf);
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
 	if(cmd.find("reg")!=string::npos){
@@ -178,6 +295,7 @@ void getData(int fd){
     	FD_CLR(fd, &fdreads);
     	traverseConnections();
     	sendCnxnList();
+    	return false;
 		//updatePort(string id, string port)
 	}
 	else if(cmd.find("peers")!=string::npos){
@@ -189,14 +307,38 @@ void getData(int fd){
     	close(fd);
     	FD_CLR(fd, &fdreads);
     	traverseConnections();
+    	return false;
     	//updatePort(string id, string port)
+	}
+	else if(cmd.find("connect")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
+		if(checkConnection(ip, p)){
+			addPermanent(ip, p, fd);
+			return true;
+		}
+		else{
+			cout<<"Not in the list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
 	}
 	else{
 		cout<<"no relevant data\n";
 		memset(buf, 0, sizeof(buf));
     	close(fd);
     	FD_CLR(fd, &fdreads);
+    	return false;
 	}
+}
+
+void addPermanent(string ip,string port,int fd){
+	cout<<"New Perm COnnection";
+	addConnectd(ip, port, fd);
+	traverseConnectd();
+	addToConnList(fd);
 }
 
 void assignMaxFD(){
@@ -275,8 +417,6 @@ void registerWithServer(string ipaddr,string porta){
    		cout<<"Connection error -- "<<strerror(errno);
    		close(sockfd);
    }
-   
-   
 }
 
 void sendCnxnList(){
@@ -304,11 +444,53 @@ void sendMsg(string ipaddr,string porta,string msg){
     char closebuf[100];
 	   while(1){
 	   		int res=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<"~~"<<res<<"~~"<<endl;
+	   		cout<<"~~"<<res<<"~~";
 	   		if(!res)
 	   			break;
 	   }
+	   cout<<endl;
    close(sockfd);
+}
+
+void connectTo(string ipaddr,string porta,string msg){
+	struct sockaddr_in servaddr,cliaddr;
+	int sockfd=socket(AF_INET,SOCK_STREAM,0);
+    bzero(&servaddr,sizeof(servaddr));
+    int optval=1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
+    servaddr.sin_port=htons(atoi(porta.c_str()));
+    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+    //addPermanent(ipaddr, porta, sockfd);
+    //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
+   //  shutdown(sockfd, SHUT_WR);
+   //  char closebuf[100];
+	  //  while(1){
+	  //  		int res=read(sockfd,closebuf,sizeof(closebuf));
+	  //  		cout<<"~~"<<res<<"~~"<<endl;
+	  //  		if(!res)
+	  //  			break;
+	  //  }
+   // close(sockfd);
+}
+
+void sendTo(string id,string msg){
+	cout<<"sendto "<<id<<"--"<<msg<<endl;
+	vector<string> fd=getFd(id);
+	if(fd.size()>0){
+		cout<<"id found\n";
+		int data=write(strToInt(fd[3]),msg.c_str(),strlen(msg.c_str()));
+		cout<<"sent "<<data<<endl;
+	}
+	else
+		cout<<"id not found\n";
+	
+}
+
+int idToFD(string id){
+
 }
 
 void clientBoot(){
@@ -338,7 +520,7 @@ int main ( int argc, char *argv[]){
 		
 		if(role=='c'){
 			clientBoot();
-			listener();
+			clistener();
 			//printf("Its a client\n");
 		}
 		else if(role=='s'){

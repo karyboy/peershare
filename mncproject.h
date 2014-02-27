@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <sstream>
 
 using namespace std;
 
@@ -37,6 +38,8 @@ socklen_t conn_size;
 char buf[100];
 
 vector < vector<string> > connections;
+
+vector < vector<string> > connectd;
 
 vector<string> addConnection(string ipaddr,string port){
 	vector<string> conn(3);
@@ -205,14 +208,76 @@ string getDomainName(char *url){
 	return string(he->h_name);
 }
 
-void addServer(){
-	addConnection(serverip,serverport);
+bool checkConnection(string ip,string port){
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmp=connections[i];
+		if(tmp[1]==ip && tmp[2]==port){
+			cout<<"this is in"<<endl;
+			return true;
+		}
+	}
+	return false;
 }
 
 void tester (){
 	cout<<getDomainName("8.8.8.8");
 }
 
+void addConnectd(string ipaddr,string port,int fd){
+	vector<string> conn(4);
+	conn[1]=ipaddr;
+	conn[2]=port;
+	stringstream ss;
+	ss << fd;
+	string ss1=ss.str();
+	conn[3]=ss1;
+	int id=connectd.size()+1;
+	char ids[10];
+	sprintf(ids, "%d", id);
+	conn[0]=string(ids);
+	connectd.push_back(conn);
+}
 
+void addServer(){
+	addConnection(serverip,serverport);
+	addConnectd(serverip,serverport,-1);
+}
+
+void traverseConnectd(){
+	cout<<"connectd"<<endl;
+	for(int i=0;i<connectd.size();i++){
+		vector<string> tmp=connectd[i];
+		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+}
+
+bool checkFd(int fd){
+	cout<<"\nFD to Check "<<fd;
+	stringstream ss;
+	ss << fd;
+	string ss1=ss.str();
+	for(int i=0;i<connectd.size();i++){
+		vector<string> tmp=connectd[i];
+		if(ss1==tmp[3]){
+			return true;
+		}
+		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+	return false;
+}
+
+vector<string> getFd(string id){
+	vector<string> tmp;
+	cout<<"\ngetting fd "<<id<<endl;
+	for(int i=0;i<connectd.size();i++){
+		tmp=connectd[i];
+		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+	return tmp;
+}
+
+int strToInt(string str){
+	return atoi(str.c_str());
+}
 
 #endif
