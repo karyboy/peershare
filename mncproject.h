@@ -280,12 +280,43 @@ bool checkFd(string ip,string port){
 
 vector<string> getFd(string id){
 	vector<string> tmp;
-	cout<<"\ngetting fd "<<id<<endl;
+	cout<<"\ngetting fd "<<connectd.size()<<endl;
 	for(int i=0;i<connectd.size();i++){
-		tmp=connectd[i];
+		vector<string> tmpa=connectd[i];
+		if(id==tmpa[0])
+			tmp=connectd[i];
 		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
 	}
 	return tmp;
+}
+
+vector<string> getFd(string ip,string port){
+	vector<string> tmp;
+	cout<<"\ngetting fd by ip "<<endl;
+	for(int i=0;i<connectd.size();i++){
+		vector<string> tmpa=connectd[i];
+		if(ip==tmpa[1] && port==tmpa[2])
+			tmp=connectd[i];
+		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+	return tmp;
+}
+
+void reConnectd(){
+	for(int i=1;i<connectd.size();i++){
+		connectd[i][0]=i+1;
+	}
+}
+
+void removeConnectd(string fd){
+	for(int i=0;i<connectd.size();i++){
+		vector<string> tmp=connectd[i];
+		if(tmp[0]==fd){
+			cout<<"Removing this fd"<<endl;
+			connectd.erase(connectd.begin()+i);
+		}
+	}
+	reConnectd();
 }
 
 int strToInt(string str){

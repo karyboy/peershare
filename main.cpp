@@ -14,6 +14,7 @@ void connectTo(string,string,string);
 void addPermanent(string,string,int);
 void addToConnList(int);
 void sendTo(string,string);
+void terminate(string);
 //
 
 void handleCommand(char ccmd[100]){
@@ -60,7 +61,17 @@ void handleCommand(char ccmd[100]){
 		traverseConnections();
 	}
 	else if(cmd.compare("terminate")==0){
-		tester();
+		if(role=='c'){
+			if(tokens[1].length()>0){
+				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
+				terminate(tokens[1]);
+			}
+			else
+				cout<<"Parameters Missing\n";
+		}
+		else{
+			printf("You need to be a client to use this command\n");
+		}
 	}
 	else if(cmd.compare("exit")==0){
 		printf("Exiting the Program, Bye!\n");
@@ -277,6 +288,15 @@ void redoFDSET(){
 	for(int i=0;i<10;i++){
 		if(connlist[i]!=-2){
 			FD_SET(connlist[i], &fdreads);
+		}
+	}
+}
+
+void unFDSET(int fd){
+	for(int i=0;i<10;i++){
+		if(connlist[i]==fd){
+			connlist[i]==-2;
+			cout<<"Undone "<<fd<<endl;
 		}
 	}
 }
@@ -503,7 +523,18 @@ void sendTo(string id,string msg){
 }
 
 int idToFD(string id){
+}
 
+void terminate(string id){
+	vector<string> fd=getFd(id);
+	if(fd.size()>0){
+		cout<<"id found\n";
+		unFDSET(strToInt(fd[3]));
+		removeConnectd(id);
+	}
+	else{
+		cout<<"id not found\n";
+	}
 }
 
 void clientBoot(){
@@ -518,6 +549,7 @@ void serverBoot(){
 	for(int i=0;i<10;i++)
 		connlist[i]=-2;
 }
+
 
 int main ( int argc, char *argv[]){
 	if(argc!=arg_no ){
