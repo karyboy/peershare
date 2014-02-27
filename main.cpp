@@ -133,7 +133,7 @@ int listener(){
 	    	}
 	    	for(int i=0;i<10;i++){
 	    		if(connlist[i]!=-2){
-	    			printf("check for data--%d\n",i);
+	    			//printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
 	   					//FD_CLR(connlist[i], &fdreads);
@@ -168,10 +168,10 @@ void getData(int fd){
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
 	if(cmd.find("reg")!=string::npos){
-		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_"));
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		cout<<"port is"<<p<<endl;
-		cout<<"ip is "<<myip<<endl;
+		//cout<<"ip is "<<myip<<endl;
     	addConnection(ip, p);
     	memset(buf, 0, sizeof(buf));
     	close(fd);
@@ -181,8 +181,8 @@ void getData(int fd){
 		//updatePort(string id, string port)
 	}
 	else if(cmd.find("peers")!=string::npos){
-		string p=cmd.substr(cmd.find("_")+1,cmd.length()-cmd.find("_"));
-    	cout<<"peeeerrs-"<<p<<"\n";
+		string p=cmd.substr(cmd.find("_")+1,cmd.length());
+    	//cout<<"\nyooooooo-"<<p<<"\n";
     	emptyConnections();
     	formPeerVector(p);
     	memset(buf, 0, sizeof(buf));
@@ -212,9 +212,9 @@ void addToConnList(int fd){
 	for(int i=0;i<10;i++){
     	if(connlist[i]==-2){
     		connlist[i]=fd;
-    		printf("%d=added to conn list==%d\n",i,fd);
+    		//printf("%d=added to conn list==%d\n",i,fd);
     		if(fd>maxsock){
-    			printf("max bhi tha\n");
+    			//printf("max bhi tha\n");
     			maxsock=fd;
     		}
     		break;
@@ -226,7 +226,6 @@ int handleNewConnection(){
     printf("THere is a new connection\n");
     conn_size=sizeof conns;
     int newfd=accept(listenfd,(struct sockaddr *)&conns, &conn_size);
-    getIpPeer(newfd);
     char buf[200];
     char porta[200];
     //inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
@@ -284,13 +283,12 @@ void sendCnxnList(){
 	string str=formPeerString();
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
-		cout<<"<<"<<tmp[1]<<"--"<<tmp[2]<<"--"<<str<<">>\n";
 		sendMsg(tmp[1], tmp[2], str);
 	}
 }
 
 void sendMsg(string ipaddr,string porta,string msg){
-	cout<<"("<<ipaddr<<"-"<<porta<<"-"<<msg<<"-\n";
+	//cout<<"("<<ipaddr<<"-"<<porta<<"-"<<msg<<"-\n";
 	struct sockaddr_in servaddr,cliaddr;
 	int sockfd=socket(AF_INET,SOCK_STREAM,0);
     bzero(&servaddr,sizeof(servaddr));
@@ -301,20 +299,26 @@ void sendMsg(string ipaddr,string porta,string msg){
     servaddr.sin_port=htons(atoi(porta.c_str()));
     connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-    printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
+    //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
     shutdown(sockfd, SHUT_WR);
     char closebuf[100];
 	   while(1){
-	   		cout<<"in while";
 	   		int res=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<"~~"<<res<<"~~";
+	   		cout<<"~~"<<res<<"~~"<<endl;
 	   		if(!res)
 	   			break;
 	   }
    close(sockfd);
 }
 
-void boot(){
+void clientBoot(){
+	myip=getMyIp();
+	addServer();
+	for(int i=0;i<10;i++)
+		connlist[i]=-2;
+}
+
+void serverBoot(){
 	myip=getMyIp();
 	for(int i=0;i<10;i++)
 		connlist[i]=-2;
@@ -326,7 +330,6 @@ int main ( int argc, char *argv[]){
 		return 0;
 	}
 	else{
-		boot();
 		role=*argv[1];
 		//port=*argv[2];
 		strcpy(port, argv[2]);
@@ -334,10 +337,12 @@ int main ( int argc, char *argv[]){
 		//printf("Port number is %s\n",port );
 		
 		if(role=='c'){
+			clientBoot();
 			listener();
 			//printf("Its a client\n");
 		}
 		else if(role=='s'){
+			serverBoot();
 			listener();
 			//printf("Its a server\n");
 		}
