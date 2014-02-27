@@ -5,6 +5,7 @@
 int handleNewConnection();
 void redoFDSET();
 bool getData(int);
+void permData(int);
 void registerWithServer(string,string);
 void assignMaxFD();
 void sendMsg(string,string,string);
@@ -244,7 +245,8 @@ int clistener(){
 	    				printf("Data incoming\n");
 	   					//FD_CLR(connlist[i], &fdreads);
 	   					if(checkFd(connlist[i])){
-	   						cout<<"There is this connection";
+	   						cout<<"There is this connection"<<endl;
+	   						permData(connlist[i]);
 	   					}
 	   					else{
 	   						if(getData(connlist[i])){
@@ -314,6 +316,7 @@ bool getData(int fd){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		if(checkConnection(ip, p)){
+			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
 			return true;
 		}
@@ -334,11 +337,21 @@ bool getData(int fd){
 	}
 }
 
+void permData(int fd){
+	int data=read(fd,buf,sizeof(buf));
+	printf("perm data-%s\n",buf);
+	string cmd=string(buf);
+	memset(buf, 0, sizeof(buf));
+	cout<<"the msg is "<<cmd<<endl;
+}
+
 void addPermanent(string ip,string port,int fd){
 	cout<<"New Perm COnnection";
 	addConnectd(ip, port, fd);
 	traverseConnectd();
 	addToConnList(fd);
+	// if(checkFd(ip,port))
+	// 	connectTo(ip, port,"connect_"+string(port)+"|"+myip);
 }
 
 void assignMaxFD(){
@@ -463,7 +476,7 @@ void connectTo(string ipaddr,string porta,string msg){
     servaddr.sin_port=htons(atoi(porta.c_str()));
     connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-    //addPermanent(ipaddr, porta, sockfd);
+    addPermanent(ipaddr, porta, sockfd);
     //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
    //  shutdown(sockfd, SHUT_WR);
    //  char closebuf[100];

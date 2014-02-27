@@ -252,13 +252,25 @@ void traverseConnectd(){
 }
 
 bool checkFd(int fd){
-	cout<<"\nFD to Check "<<fd;
+	cout<<"\nFD to Check "<<fd<<endl;
 	stringstream ss;
 	ss << fd;
 	string ss1=ss.str();
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		if(ss1==tmp[3]){
+			return true;
+		}
+		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+	return false;
+}
+
+bool checkFd(string ip,string port){
+	cout<<"\nFD to Check by string "<<endl;
+	for(int i=0;i<connectd.size();i++){
+		vector<string> tmp=connectd[i];
+		if(ip==tmp[1] && ip==tmp[2]){
 			return true;
 		}
 		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
