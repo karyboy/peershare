@@ -168,8 +168,11 @@ void getData(int fd){
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
 	if(cmd.find("reg")!=string::npos){
-		string p=cmd.substr(cmd.find("_")+1,cmd.length()-cmd.find("_"));
-    	addConnection(getIpPeer(fd), p);
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_"));
+		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
+		cout<<"port is"<<p<<endl;
+		cout<<"ip is "<<myip<<endl;
+    	addConnection(ip, p);
     	memset(buf, 0, sizeof(buf));
     	close(fd);
     	FD_CLR(fd, &fdreads);
@@ -226,9 +229,9 @@ int handleNewConnection(){
     getIpPeer(newfd);
     char buf[200];
     char porta[200];
-    inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
+    //inet_ntop(AF_INET, (struct sockaddr_in *)&conns, buf, sizeof(buf));
     //getnameinfo((struct sockaddr *)&conns, conn_size, buf, sizeof buf, porta, sizeof porta, 0);
-    printf("{{%s}}\n",buf);
+    //printf("{{%s}}\n",buf);
     // addConnection(string(buf),string(porta));
     addToConnList(newfd);
 }
@@ -244,7 +247,7 @@ void registerWithServer(string ipaddr,string porta){
    int outa=getaddrinfo(ipaddr.c_str(), porta.c_str(), &hints, &re);
    //cout<<outa<<"}}}}}\n";
    //struct sockaddr_in servaddr;
-   string msg="port_"+string(port);
+   string msg="reg_"+string(port)+"|"+myip;
    int sockfd=socket(re->ai_family,re->ai_socktype,re->ai_protocol);
    //int sockfd=socket(AF_INET,SOCK_STREAM,0);
    //bzero(&servaddr,sizeof(servaddr));

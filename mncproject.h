@@ -63,7 +63,6 @@ vector<string> removeConnection(string id){
 void emptyConnections(){
 	connections.clear();
 }
-
 void updatePort(string id,string port){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
@@ -94,7 +93,7 @@ string getIpMy(int fd){
 	struct sockaddr_in *s = (struct sockaddr_in *)&peername;
     //port = ntohs(s->sin_port);
     inet_ntop(AF_INET, &s->sin_addr, pipaddr, sizeof pipaddr); 
-    cout<<fd<<"{===="<<pipaddr<<"}";
+    //cout<<fd<<"{===="<<pipaddr<<"}";
     return pipaddr;
 }
 
