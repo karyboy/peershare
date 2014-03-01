@@ -36,6 +36,7 @@ fd_set fdreads,fdmain,fdwrites;
 socklen_t conn_size;
 
 char buf[100];
+int filebuffer=3000;
 
 vector < vector<string> > connections;
 
