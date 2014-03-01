@@ -81,7 +81,7 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("upload")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0)
-				sendTo(tokens[1], tokens[2]);
+				sendTo(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
 			else
 				cout<<"Parameters Missing\n";
 		}
@@ -214,14 +214,13 @@ int clistener(){
 	t.tv_sec=5;
 	t.tv_usec=0;
 
-
     while(1){
     	//printf("%d**%d**%s\n",maxsock,listenfd,buf);
    		redoFDSET();
     	int socksel=select(maxsock+1, &fdreads,&fdwrites, NULL, &t);
     	//printf("2-%d\n",socksel);
     	if(socksel==-1){
-    		perror("There has been select error");
+    		perror("There has been select error->");
     	}
 
     	if(socksel==0){
@@ -254,21 +253,24 @@ int clistener(){
 	    			//printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
-	   					//FD_CLR(connlist[i], &fdreads);
-	   					if(checkFd(connlist[i])){
-	   						cout<<"There is this connection"<<endl;
-	   						permData(connlist[i]);
-	   					}
-	   					else{
-	   						if(getData(connlist[i])){
-	   						cout<<"Permanent"<<endl;
-	   						}
-		   					else{
-		   						cout<<"Temporary"<<endl;
-								connlist[i]=-2;
-		   						assignMaxFD();
-		   					}
-	   					}
+	    				getData(connlist[i]);
+						connlist[i]=-2;
+		   				assignMaxFD();
+		   				//FD_CLR(connlist[i], &fdreads);
+	   				// 	if(checkFd(connlist[i])){
+	   				// 		cout<<"There is this connection"<<endl;
+	   				// 		permData(connlist[i]);
+	   				// 	}
+	   				// 	else{
+	   				// 		if(getData(connlist[i])){
+	   				// 		cout<<"Permanent"<<endl;
+	   				// 		}
+		   			// 		else{
+		   			// 			cout<<"Temporary"<<endl;
+								// connlist[i]=-2;
+		   			// 			assignMaxFD();
+		   			// 		}
+	   				// 	}
 	   					
 	    			}
 	    		}
@@ -299,6 +301,7 @@ void unFDSET(int fd){
 			cout<<"Undone "<<fd<<endl;
 		}
 	}
+	assignMaxFD();
 }
 
 bool getData(int fd){
@@ -338,7 +341,50 @@ bool getData(int fd){
 		if(checkConnection(ip, p)){
 			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
+			close(fd);
+    		FD_CLR(fd, &fdreads);
+    		cout<<"COnnection added"<<endl;
 			return true;
+		}
+		else{
+			cout<<"Not in the list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
+	}
+	else if(cmd.find("connmsg")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.find("*")-cmd.find("|")-1);
+		string msg=cmd.substr(cmd.find("*")+1,cmd.length()-cmd.find("*"));
+		if(checkConnection(ip, p)){
+			memset(buf, 0, sizeof(buf));
+			close(fd);
+    		FD_CLR(fd, &fdreads);
+    		cout<<"conn msg is "<<msg<<endl;
+			return true;
+		}
+		else{
+			cout<<"Not in the list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
+	}
+	else if(cmd.find("break")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
+		if(checkConnectd(ip, p)){
+			memset(buf, 0, sizeof(buf));
+			vector<string> tmp=getFd(ip,p);
+			removeConnectd(tmp[0]);
+			//unFDSET(strToInt(tmp[3]));
+			close(fd);
+    		FD_CLR(fd, &fdreads);
+    		cout<<"Removed from here as well"<<endl;
+			return false;
 		}
 		else{
 			cout<<"Not in the list"<<endl;
@@ -369,7 +415,7 @@ void addPermanent(string ip,string port,int fd){
 	cout<<"New Perm COnnection";
 	addConnectd(ip, port, fd);
 	traverseConnectd();
-	addToConnList(fd);
+	//addToConnList(fd);
 	// if(checkFd(ip,port))
 	// 	connectTo(ip, port,"connect_"+string(port)+"|"+myip);
 }
@@ -497,16 +543,16 @@ void connectTo(string ipaddr,string porta,string msg){
     connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
     addPermanent(ipaddr, porta, sockfd);
-    //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
-   //  shutdown(sockfd, SHUT_WR);
-   //  char closebuf[100];
-	  //  while(1){
-	  //  		int res=read(sockfd,closebuf,sizeof(closebuf));
-	  //  		cout<<"~~"<<res<<"~~"<<endl;
-	  //  		if(!res)
-	  //  			break;
-	  //  }
-   // close(sockfd);
+    printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
+    shutdown(sockfd, SHUT_WR);
+    char closebuf[100];
+	   while(1){
+	   		int res=read(sockfd,closebuf,sizeof(closebuf));
+	   		cout<<">>"<<res<<"<<"<<endl;
+	   		if(!res)
+	   			break;
+	   }
+   close(sockfd);
 }
 
 void sendTo(string id,string msg){
@@ -514,8 +560,9 @@ void sendTo(string id,string msg){
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
 		cout<<"id found\n";
-		int data=write(strToInt(fd[3]),msg.c_str(),strlen(msg.c_str()));
-		cout<<"sent "<<data<<endl;
+		//int data=write(strToInt(fd[3]),msg.c_str(),strlen(msg.c_str()));
+		sendMsg(fd[1], fd[2], msg);
+		cout<<"sent "<<endl;
 	}
 	else
 		cout<<"id not found\n";
@@ -529,8 +576,9 @@ void terminate(string id){
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
 		cout<<"id found\n";
-		unFDSET(strToInt(fd[3]));
-		removeConnectd(id);
+		sendTo(id,"break_"+string(port)+"|"+myip );
+		// unFDSET(strToInt(fd[3]));
+	    removeConnectd(id);
 	}
 	else{
 		cout<<"id not found\n";
