@@ -15,8 +15,9 @@ void addPermanent(string,string,int);
 void addToConnList(int);
 void sendTo(string,string);
 void terminate(string);
-void sendFile(string,string);
+bool sendFile(string,string,string);
 void fileData(int);
+void pushUpload(string,string);
 //
 
 void handleCommand(char ccmd[100]){
@@ -83,7 +84,8 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("upload")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0)
-				sendTo(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
+				pushUpload(tokens[1], tokens[2]);
+				//sendFile(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
 			else
 				cout<<"Parameters Missing\n";
 		}
@@ -92,7 +94,7 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("download")==0){
-		sendFile("192.168.1.4", "8888");
+		sendFile("192.168.1.4", "8888","pipr.zip");
 	}
 	else if(cmd.compare("creator")==0){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
@@ -176,8 +178,8 @@ int listener(){
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
 	   					//FD_CLR(connlist[i], &fdreads);
-	   					//getData(connlist[i]);
-						fileData(connlist[i]);
+	   					getData(connlist[i]);
+						//fileData(connlist[i]);
 						connlist[i]=-2;
 		   				assignMaxFD();
 		   			}
@@ -256,24 +258,18 @@ int clistener(){
 	    			//printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
-	    				getData(connlist[i]);
-						connlist[i]=-2;
-		   				assignMaxFD();
 		   				//FD_CLR(connlist[i], &fdreads);
-	   				// 	if(checkFd(connlist[i])){
-	   				// 		cout<<"There is this connection"<<endl;
-	   				// 		permData(connlist[i]);
-	   				// 	}
-	   				// 	else{
-	   				// 		if(getData(connlist[i])){
-	   				// 		cout<<"Permanent"<<endl;
-	   				// 		}
-		   			// 		else{
-		   			// 			cout<<"Temporary"<<endl;
-								// connlist[i]=-2;
-		   			// 			assignMaxFD();
-		   			// 		}
-	   				// 	}
+	   					if(checkFd(connlist[i])){
+	   						cout<<"File coming in"<<endl;
+	   						fileData(connlist[i]);
+	   						connlist[i]=-2;
+		   					assignMaxFD();
+	   					}
+	   					else{
+	   						getData(connlist[i]);
+							connlist[i]=-2;
+		   					assignMaxFD();
+	   					}
 	   					
 	    			}
 	    		}
@@ -411,21 +407,38 @@ void fileData(int fd){
 	FILE *pfile;
 	void *p;
 	p = malloc(3000);
-	//memset(p, 0, s);
-	pfile=fopen("kary.dat", "w");
+	pfile=fopen("mnctmp.dat", "w");
 	if(pfile==NULL){
 		cout<<"File problem"<<endl;
 	}
+
+	char filename[100];
+  	int fname=read(fd,filename,100);
+  	cout<<"Got the filename "<<filename<<endl;
 	while((data=read(fd,p,filebuffer))>0){
 		cout<<"Reading ho rhi hai "<<data<<endl;
 		fwrite(p, 1, data, pfile);
-		//memset(p, 0,3000);
 	}
 	cout<<"socket read done"<<endl;
 	fclose(pfile);
 	close(fd);
     FD_CLR(fd, &fdreads);
     free(p);
+    if(rename("mnctmp.dat", strcat(filename,"1"))==0)
+    	cout<<"Renamed "<<endl;
+
+}
+
+void pushUpload(string id,string filename){
+	cout<<"push upload "<<id<<endl;
+	vector<string> fd=getFd(id);
+	if(fd.size()>0){
+		cout<<"id found\n";
+		sendFile(fd[1], fd[2], filename);
+		cout<<"sent "<<endl;
+	}
+	else
+		cout<<"id not found\n";
 }
 
 void permData(int fd){
@@ -523,7 +536,12 @@ void registerWithServer(string ipaddr,string porta){
    }
 }
 
-void sendFile(string ipaddr,string porta){
+bool sendFile(string ipaddr,string porta,string file){
+	FILE *pfile=fopen(file.c_str(), "r");
+   		if(pfile==NULL){
+   			cout<<"No such file"<<endl;
+   			return false;
+   		}
    serverip=ipaddr;
    serverport=porta;
    struct addrinfo hints, *re;
@@ -532,27 +550,25 @@ void sendFile(string ipaddr,string porta){
    hints.ai_socktype = SOCK_STREAM;
    hints.ai_flags=AI_PASSIVE;
    int outa=getaddrinfo(ipaddr.c_str(), porta.c_str(), &hints, &re);
-   string msg="reg_"+string(port)+"|"+myip;
    int sockfd=socket(re->ai_family,re->ai_socktype,re->ai_protocol);
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
    if(conn>-1){
-   		FILE *pfile=fopen("pip.mp4", "r");
-   		if(pfile==NULL)
-   			cout<<"No such file"<<endl;
    		int d;
    		long lsize;
-   		char *buffer ;
+   		void *buffer ;
    		fseek (pfile , 0 , SEEK_END);
   		lsize = ftell (pfile);
   		rewind (pfile);
-  		cout<<"yahan tak"<<endl;
-  		buffer = (char*) malloc (sizeof(char)*lsize);
-   		while((d=fread(buffer, 1, lsize, pfile))>0){
+  		//buffer = (char*) malloc (sizeof(char)*lsize);
+  		buffer=malloc(filebuffer);
+  		string filename=file;
+  		int fname=write(sockfd,filename.c_str(),100);
+  		cout<<"File extension "<<fname<<endl;
+   		while((d=fread(buffer, 1, filebuffer, pfile))>0){
    			cout<<"file read "<<d<<endl;
-   			int data=write(sockfd,buffer,lsize);
+   			int data=write(sockfd,buffer,d);
    			cout<<"socket written "<<d<<endl;
    		}
-   		strerror(errno);
    	   printf("sent the file\n");
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
@@ -564,11 +580,13 @@ void sendFile(string ipaddr,string porta){
 	   }
 	   close(sockfd);	
 	   free(buffer);
+	   return true;
    }
    else{
 
    		cout<<"Connection error -- "<<strerror(errno);
    		close(sockfd);
+   		return false;
    }
 }
 
