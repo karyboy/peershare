@@ -18,6 +18,7 @@ void terminate(string);
 bool sendFile(string,string,string);
 void fileData(int,string);
 void pushUpload(string,string);
+void requestDownload(string,string);
 //
 
 void handleCommand(char ccmd[100]){
@@ -94,7 +95,16 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("download")==0){
-		sendFile("192.168.1.4", "8888","pipr.zip");
+		if(role=='c'){
+			if(tokens[1].length()>0 && tokens[2].length()>0)
+				requestDownload(tokens[1], tokens[2]);
+				//sendFile(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
+			else
+				cout<<"Parameters Missing\n";
+		}
+		else{
+			printf("You need to be a client to use this command\n");
+		}
 	}
 	else if(cmd.compare("creator")==0){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
@@ -311,13 +321,39 @@ bool getData(int fd){
 	printf("data-%s\n",buf);
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
-	if(cmd.find("data")!=string::npos){
+	if(cmd.find("dplz")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.find("*")-cmd.find("|")-1);
 		string filename=cmd.substr(cmd.find("*")+1,cmd.length()-cmd.find("*"));
 		if(checkConnectd(ip, p)){
 			memset(buf, 0, sizeof(buf));
 			fileData(fd,filename);
+			return true;
+		}
+		else{
+			cout<<"Not in the connected list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
+	}
+	else if(cmd.find("fplz")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.find("*")-cmd.find("|")-1);
+		string filename=cmd.substr(cmd.find("*")+1,cmd.length()-cmd.find("*"));
+		if(checkConnectd(ip, p)){
+			cout<<"Received request for file "<<filename<<endl;
+			memset(buf, 0, sizeof(buf));
+			vector<string> id=getFd(ip,p);
+			close(fd);
+    		FD_CLR(fd, &fdreads);
+			if(id.size()>0){
+				cout<<"id found\n";
+				pushUpload(id[0], filename);
+			}
+			else
+				cout<<"id not found\n";
 			return true;
 		}
 		else{
@@ -468,6 +504,17 @@ void pushUpload(string id,string filename){
 		cout<<"id not found\n";
 }
 
+void requestDownload(string id,string filename){
+	cout<<"request download "<<id<<endl;
+	vector<string> fd=getFd(id);
+	if(fd.size()>0){
+		cout<<"id found\n";
+		sendMsg(fd[1], fd[2], "fplz_"+string(port)+"|"+myip+"*"+filename);
+	}
+	else
+		cout<<"id not found\n";
+}
+
 void permData(int fd){
 	int data=read(fd,buf,sizeof(buf));
 	printf("perm data-%s\n",buf);
@@ -591,7 +638,7 @@ bool sendFile(string ipaddr,string porta,string file){
   		rewind (pfile);
   		//buffer = (char*) malloc (sizeof(char)*lsize);
   		buffer=malloc(filebuffer);
-  		string filename="data_"+string(port)+"|"+myip+"*"+file;
+  		string filename="dplz_"+string(port)+"|"+myip+"*"+file;
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
   		tx=start.tv_usec;
