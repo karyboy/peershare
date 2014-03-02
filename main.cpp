@@ -23,26 +23,23 @@ void requestDownload(string,string);
 
 void handleCommand(char ccmd[100]){
 	std::string str=std::string(ccmd);
-	std::vector<std::string> tokens=tokenize(str," ");
+	std::vector<std::string> tokens=tokenize2(str," ");
 	std::string cmd=tokens[0];
-	//split(tokens,cmd,is_any_of(" "));
 	if(cmd.compare("help")==0){
 		printf("\nAvailable Commands\n1- HELP (List Commands)\n2- MYIP (Show My IP Address)\n3- MYPORT (Show My Port)\n4- REGISTER <server IP><port no> ()\n5- CONNECT <destination><port> ()\n6- LIST (List all connections with details)\n7- TERMINATE <connection_id> (Terminate a connection)\n8- EXIT (exit the process)\n9- UPLOAD <connection_id> <filename> (upload this file)\n10-DOWNLOAD <connection id 1 ><file><connection id 2><file2> <connection id 3><file3>\n11-Creator of this software\n\n");
-		//handleCommand();
 	}
 	else if(cmd.compare("myip")==0){
 		cout<<"My ip address is "<<myip<<"\n";
 	}
 	else if(cmd.compare("myport")==0){
 		printf("\nMy current Port is %s\n", port);
-		//handleCommand();
 	}
 	else if(cmd.compare("register")==0){
 		if(role=='c'){
-			if(tokens[1].length()>0 && tokens[2].length()>0)
+			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3)
 				registerWithServer(tokens[1],tokens[2]);
 			else
-				cout<<"Parameters Missing\n";
+				cout<<"BAD Parameters\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
@@ -50,12 +47,12 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("connect")==0){
 		if(role=='c'){
-			if(tokens[1].length()>0 && tokens[2].length()>0){
+			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3){
 				cout<<tokens[1]<<"--"<<tokens[2]<<endl;
 				connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
 			}
 			else
-				cout<<"Parameters Missing\n";
+				cout<<"BAD Parameters\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
@@ -66,12 +63,12 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("terminate")==0){
 		if(role=='c'){
-			if(tokens[1].length()>0){
+			if(tokens[1].length()>0 && tokens.size()==2){
 				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
 				terminate(tokens[1]);
 			}
 			else
-				cout<<"Parameters Missing\n";
+				cout<<"BAD Parameters\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
@@ -84,25 +81,29 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("upload")==0){
 		if(role=='c'){
-			if(tokens[1].length()>0 && tokens[2].length()>0)
+			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()>1 && tokens.size()<4)
 				pushUpload(tokens[1], tokens[2]);
-				//sendFile(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
 			else
-				cout<<"Parameters Missing\n";
+				cout<<"BAD Parameters\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
 		}
 	}
 	else if(cmd.compare("download")==0){
-		cout<<tokens.size()<<endl;
-		cout<<tokens[1]<<"-"<<tokens[2]<<"-"<<tokens[3]<<"-"<<tokens[4]<<"-"<<tokens[5]<<"-"<<tokens[6]<<endl;
-		if(role=='c'){
-			if(tokens[1].length()>0 && tokens[2].length()>0)
-				requestDownload(tokens[1], tokens[2]);
-				//sendFile(tokens[1], "connmsg_"+string(port)+"|"+myip+"*"+tokens[2]);
+		//cout<<tokens.size()<<endl;
+		//cout<<tokens[1]<<"-"<<tokens[2]<<"-"<<tokens[3]<<"-"<<tokens[4]<<"-"<<tokens[5]<<"-"<<tokens[6]<<endl;
+		if(role=='c' ){
+			if((tokens.size()-1)%2==0 && tokens.size()>1 && tokens.size()<8){
+				int till=(tokens.size()-1)/2,i=1,j=1;
+				while(i<=till){
+					requestDownload(tokens[j], tokens[j+1]);
+					j=j+2;
+					i++;
+				}
+			}
 			else
-				cout<<"Parameters Missing\n";
+				cout<<" BAD Parameters\n";
 		}
 		else{
 			printf("You need to be a client to use this command\n");
@@ -110,16 +111,13 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("creator")==0){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
-		//handleCommand();
 	}
 	else if(cmd.compare("test")==0){
 		traverseConnectd();
 	}
 	else{
 		printf("Command Not Found\n");
-		//handleCommand();
 	}
-	//printf("The commnad is %s\n", cmd);
 }
 
 int listener(){
