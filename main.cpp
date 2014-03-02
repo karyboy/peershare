@@ -16,7 +16,7 @@ void addToConnList(int);
 void sendTo(string,string);
 void terminate(string);
 bool sendFile(string,string,string);
-void fileData(int);
+void fileData(int,string);
 void pushUpload(string,string);
 //
 
@@ -259,17 +259,20 @@ int clistener(){
 	    			if(FD_ISSET(connlist[i], &fdreads)){
 	    				printf("Data incoming\n");
 		   				//FD_CLR(connlist[i], &fdreads);
-	   					if(checkFd(connlist[i])){
-	   						cout<<"File coming in"<<endl;
-	   						fileData(connlist[i]);
-	   						connlist[i]=-2;
-		   					assignMaxFD();
-	   					}
-	   					else{
+	   					// if(checkFd(connlist[i])){
+	   					// 	cout<<"File coming in"<<endl;
+	   					// 	fileData(connlist[i]);
+	   					// 	cout<<"Yahan aaya"<<endl;
+	   					// 	connlist[i]=-2;
+	   					// 	cout<<"yahn bhai aaya"<<endl;
+		   				// 	assignMaxFD();
+		   				// 	cout<<"Yahan bhi aaya"<<endl;
+	   					// }
+	   					// else{
 	   						getData(connlist[i]);
 							connlist[i]=-2;
 		   					assignMaxFD();
-	   					}
+	   					//}
 	   					
 	    			}
 	    		}
@@ -308,7 +311,24 @@ bool getData(int fd){
 	printf("data-%s\n",buf);
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
-	if(cmd.find("reg")!=string::npos){
+	if(cmd.find("data")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.find("*")-cmd.find("|")-1);
+		string filename=cmd.substr(cmd.find("*")+1,cmd.length()-cmd.find("*"));
+		if(checkConnectd(ip, p)){
+			memset(buf, 0, sizeof(buf));
+			fileData(fd,filename);
+			return true;
+		}
+		else{
+			cout<<"Not in the connected list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
+	}
+	else if(cmd.find("reg")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		cout<<"port is"<<p<<endl;
@@ -337,7 +357,8 @@ bool getData(int fd){
 	else if(cmd.find("connect")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
-		if(checkConnection(ip, p)){
+		//if(checkConnection(ip, p)){
+		if(true){
 			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
 			close(fd);
@@ -402,21 +423,18 @@ bool getData(int fd){
 	}
 }
 
-void fileData(int fd){
+void fileData(int fd,string filename){
 	int data;
 	int bytes=0;
 	struct timeval start,end;
    	unsigned long tx,ty;
 	FILE *pfile;
 	void *p;
-	p = malloc(3000);
+	p = malloc(filebuffer);
 	pfile=fopen("mnctmp.dat", "w");
 	if(pfile==NULL){
 		cout<<"File problem"<<endl;
 	}
-
-	char filename[100];
-	int fname=read(fd,filename,100);
   	cout<<"Got the filename "<<filename<<endl;
   	gettimeofday(&start, NULL);
   	tx=start.tv_usec;
@@ -426,14 +444,14 @@ void fileData(int fd){
 		bytes+=data;
 	}
 	cout<<"socket read done"<<endl;
+	free(p);
 	fclose(pfile);
 	close(fd);
     FD_CLR(fd, &fdreads);
-    free(p);
     gettimeofday(&end, NULL);
 	ty=end.tv_usec;
 	cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
-    if(rename("mnctmp.dat", strcat(filename,"1"))==0)
+    if(rename("mnctmp.dat", (filename+"1").c_str())==0)
     	cout<<"Renamed "<<endl;
 
 }
@@ -573,7 +591,7 @@ bool sendFile(string ipaddr,string porta,string file){
   		rewind (pfile);
   		//buffer = (char*) malloc (sizeof(char)*lsize);
   		buffer=malloc(filebuffer);
-  		string filename=file;
+  		string filename="data_"+string(port)+"|"+myip+"*"+file;
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
   		tx=start.tv_usec;
