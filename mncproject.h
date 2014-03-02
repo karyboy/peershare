@@ -239,7 +239,7 @@ bool checkConnection(string ip,string port){
 }
 
 void tester (){
-	cout<<getDomainName("8.8.8.8");
+	//cout<<getDomainName("8.8.8.8");
 }
 
 void addConnectd(string ipaddr,string port,int fd){
