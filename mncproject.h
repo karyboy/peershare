@@ -88,11 +88,11 @@ vector<string> addConnection(string ipaddr,string port){
 	return conn;
 }
 
-vector<string> removeConnection(string id){
+void removeConnection(string id){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
 		if(tmp[0]==id ){
-			cout<<"removing from server "<<endl;
+			//cout<<"removing from server "<<endl;
 			connections.erase(connections.begin()+i);
 		}
 	}
@@ -346,6 +346,18 @@ vector<string> getFd(string ip,string port){
 		vector<string> tmpa=connectd[i];
 		if(ip==tmpa[1] && port==tmpa[2])
 			tmp=connectd[i];
+		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+	}
+	return tmp;
+}
+
+vector<string> getConnection(string ip,string port){
+	vector<string> tmp;
+	//cout<<"\ngetting conn by ip "<<endl;
+	for(int i=0;i<connections.size();i++){
+		vector<string> tmpa=connections[i];
+		if(ip==tmpa[1] && port==tmpa[2])
+			tmp=connections[i];
 		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
 	}
 	return tmp;

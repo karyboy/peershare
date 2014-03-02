@@ -29,8 +29,11 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("connect")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3){
-				cout<<tokens[1]<<"--"<<tokens[2]<<endl;
-				connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
+				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
+				if(checkConnection(tokens[1], tokens[2]))
+					connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
+				else
+					cout<<"Connection not on List"<<endl;
 			}
 			else
 				cout<<"BAD Parameters\n";
@@ -434,13 +437,13 @@ bool getData(int fd){
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		if(checkConnection(ip, p)){
 			memset(buf, 0, sizeof(buf));
-			vector<string> tmp=getFd(ip,p);
+			vector<string> tmp=getConnection(ip,p);
 			removeConnection(tmp[0]);
 			close(fd);
     		FD_CLR(fd, &fdreads);
     		traverseConnections();
     		sendCnxnList();
-    		cout<<"removing connection"<<endl;
+    		cout<<"removed client from list"<<endl;
 			return false;
 		}
 		else{
