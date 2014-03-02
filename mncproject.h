@@ -44,6 +44,26 @@ vector < vector<string> > connections;
 
 vector < vector<string> > connectd;
 
+int handleNewConnection();
+void redoFDSET();
+bool getData(int);
+void permData(int);
+void registerWithServer(string,string);
+void assignMaxFD();
+void sendMsg(string,string,string);
+void sendCnxnList();
+void connectTo(string,string,string);
+void addPermanent(string,string,int);
+void addToConnList(int);
+void sendTo(string,string);
+void terminate(string);
+bool sendFile(string,string,string);
+void fileData(int,string);
+void pushUpload(string,string);
+void requestDownload(string,string);
+void handleExit();
+//
+
 string getDomainName(string url){
 	struct hostent *he;
 	struct in_addr ipv4addr;
@@ -71,8 +91,8 @@ vector<string> addConnection(string ipaddr,string port){
 vector<string> removeConnection(string id){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
-		if(tmp[0]==id && tmp[0]!="1"){
-			//cout<<"found connection";
+		if(tmp[0]==id ){
+			cout<<"removing from server "<<endl;
 			connections.erase(connections.begin()+i);
 		}
 	}
@@ -264,10 +284,16 @@ void addServer(){
 }
 
 void traverseConnectd(){
-	cout<<"connectd"<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[4].c_str() );
+	}
+}
+
+void closeAllConnected(){
+	for(int i=1;i<connectd.size();i++){
+		vector<string> tmp=connectd[i];
+		terminate(tmp[0]);
 	}
 }
 

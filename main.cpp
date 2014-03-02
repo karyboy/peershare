@@ -2,25 +2,6 @@
 #define arg_no 3
 ;
 
-int handleNewConnection();
-void redoFDSET();
-bool getData(int);
-void permData(int);
-void registerWithServer(string,string);
-void assignMaxFD();
-void sendMsg(string,string,string);
-void sendCnxnList();
-void connectTo(string,string,string);
-void addPermanent(string,string,int);
-void addToConnList(int);
-void sendTo(string,string);
-void terminate(string);
-bool sendFile(string,string,string);
-void fileData(int,string);
-void pushUpload(string,string);
-void requestDownload(string,string);
-//
-
 void handleCommand(char ccmd[100]){
 	std::string str=std::string(ccmd);
 	std::vector<std::string> tokens=tokenize2(str," ");
@@ -76,8 +57,7 @@ void handleCommand(char ccmd[100]){
 	}
 	else if(cmd.compare("exit")==0){
 		printf("Exiting the Program, Bye!\n");
-		close(listenfd);
-		exit(1);
+		handleExit();
 	}
 	else if(cmd.compare("upload")==0){
 		if(role=='c'){
@@ -367,7 +347,7 @@ bool getData(int fd){
 	else if(cmd.find("reg")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
-		cout<<"port is"<<p<<endl;
+		//cout<<"port is"<<p<<endl;
 		//cout<<"ip is "<<myip<<endl;
     	addConnection(ip, p);
     	memset(buf, 0, sizeof(buf));
@@ -393,8 +373,7 @@ bool getData(int fd){
 	else if(cmd.find("connect")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
-		//if(checkConnection(ip, p)){
-		if(true){
+		if(checkConnection(ip, p)){
 			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
 			close(fd);
@@ -440,6 +419,28 @@ bool getData(int fd){
 			close(fd);
     		FD_CLR(fd, &fdreads);
     		cout<<"Removed from here as well"<<endl;
+			return false;
+		}
+		else{
+			cout<<"Not in the list"<<endl;
+			memset(buf, 0, sizeof(buf));
+    		close(fd);
+    		FD_CLR(fd, &fdreads);
+    		return false;
+		}
+	}
+	else if(cmd.find("mncext")!=string::npos){
+		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
+		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
+		if(checkConnection(ip, p)){
+			memset(buf, 0, sizeof(buf));
+			vector<string> tmp=getFd(ip,p);
+			removeConnection(tmp[0]);
+			close(fd);
+    		FD_CLR(fd, &fdreads);
+    		traverseConnections();
+    		sendCnxnList();
+    		cout<<"removing connection"<<endl;
 			return false;
 		}
 		else{
@@ -786,6 +787,15 @@ void sendTo(string id,string msg){
 	else
 		cout<<"id not found\n";
 	
+}
+
+void handleExit(){
+	if(role=='c'){
+		closeAllConnected();
+		sendMsg(serverip, serverport, "mncext_"+string(port)+"|"+myip);
+	}
+	close(listenfd);
+	exit(1);
 }
 
 int idToFD(string id){
