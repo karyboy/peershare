@@ -741,7 +741,10 @@ void connectTo(string ipaddr,string porta,string msg){
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
    if(conn>-1){
    	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-	   printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
+   	   if(data>0){
+   	   		addPermanent(ipaddr, porta, sockfd);
+	   		printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
+   	   }	
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
 	   while(1){
