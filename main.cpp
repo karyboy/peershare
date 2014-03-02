@@ -591,6 +591,7 @@ void registerWithServer(string ipaddr,string porta){
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
    //int conn=connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
    if(conn>-1){
+   		addServer();
    		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
 	   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
 	   shutdown(sockfd, SHUT_WR);
@@ -616,8 +617,8 @@ bool sendFile(string ipaddr,string porta,string file){
    			cout<<"No such file"<<endl;
    			return false;
    		}
-   serverip=ipaddr;
-   serverport=porta;
+   //serverip=ipaddr;
+   //serverport=porta;
    struct addrinfo hints, *re;
    memset(&hints, 0, sizeof hints);
    hints.ai_family = AF_UNSPEC;
@@ -800,7 +801,7 @@ void terminate(string id){
 
 void clientBoot(){
 	myip=getMyIp();
-	addServer();
+	//addServer();
 	for(int i=0;i<10;i++)
 		connlist[i]=-2;
 }
