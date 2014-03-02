@@ -127,7 +127,8 @@ int listener(){
 	maxsock=listenfd;
 	int b=bind(listenfd,res->ai_addr,res->ai_addrlen);
 	if(b==-1){
-		printf("error hai- %s\n", strerror(errno));
+		printf(" %s\n", strerror(errno));
+		return 0;
 	}
     int l=listen(listenfd,10);
 	printf("__%d__%d__%d\n", listenfd,b,l);	
@@ -209,7 +210,8 @@ int clistener(){
 	maxsock=listenfd;
 	int b=bind(listenfd,res->ai_addr,res->ai_addrlen);
 	if(b==-1){
-		printf("error hai- %s\n", strerror(errno));
+		printf("%s\n", strerror(errno));
+		return 0;
 	}
     int l=listen(listenfd,10);
 	printf("__%d__%d__%d\n", listenfd,b,l);	
@@ -707,19 +709,25 @@ void sendMsg(string ipaddr,string porta,string msg){
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
     servaddr.sin_port=htons(atoi(porta.c_str()));
-    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-    int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-    //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
-    shutdown(sockfd, SHUT_WR);
-    char closebuf[100];
-	   while(1){
-	   		int res=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<"~~"<<res<<"~~";
-	   		if(!res)
-	   			break;
-	   }
-	   cout<<endl;
-   close(sockfd);
+    int conn=connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    if(conn>-1){
+	    int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+	    //printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
+	    shutdown(sockfd, SHUT_WR);
+	    char closebuf[100];
+		   while(1){
+		   		int res=read(sockfd,closebuf,sizeof(closebuf));
+		   		cout<<"~~"<<res<<"~~";
+		   		if(!res)
+		   			break;
+		   }
+		   cout<<endl;
+	   close(sockfd);
+	}
+	else{
+		cout<<"Could Not Connect"<<endl;
+		close(sockfd);
+	}
 }
 
 void connectT(string ipaddr,string porta,string msg){
