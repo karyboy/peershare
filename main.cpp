@@ -706,7 +706,7 @@ void sendMsg(string ipaddr,string porta,string msg){
    close(sockfd);
 }
 
-void connectTo(string ipaddr,string porta,string msg){
+void connectT(string ipaddr,string porta,string msg){
 	struct sockaddr_in servaddr,cliaddr;
 	int sockfd=socket(AF_INET,SOCK_STREAM,0);
     bzero(&servaddr,sizeof(servaddr));
@@ -728,6 +728,35 @@ void connectTo(string ipaddr,string porta,string msg){
 	   			break;
 	   }
    close(sockfd);
+}
+
+void connectTo(string ipaddr,string porta,string msg){
+   struct addrinfo hints, *re;
+   memset(&hints, 0, sizeof hints);
+   hints.ai_family = AF_UNSPEC;
+   hints.ai_socktype = SOCK_STREAM;
+   hints.ai_flags=AI_PASSIVE;
+   int outa=getaddrinfo(ipaddr.c_str(), porta.c_str(), &hints, &re);
+   int sockfd=socket(re->ai_family,re->ai_socktype,re->ai_protocol);
+   int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
+   if(conn>-1){
+   	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
+	   printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
+	   shutdown(sockfd, SHUT_WR);
+	   char closebuf[100];
+	   while(1){
+	   		int r=read(sockfd,closebuf,sizeof(closebuf));
+	   		cout<<">>"<<r<<"<<"<<endl;
+	   		if(!r)
+	   			break;
+	   }
+	   close(sockfd);	
+   }
+   else{
+
+   		cout<<"Connection error -- "<<strerror(errno);
+   		close(sockfd);
+   }
 }
 
 void sendTo(string id,string msg){
