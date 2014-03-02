@@ -32,7 +32,6 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("connect")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3){
-				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
 				if(checkConnection(tokens[1], tokens[2]) && !checkConnectd(tokens[1], tokens[2]) && (tokens[1]!=myip || tokens[2]!=string(port)))
 					if(connectd.size()<5)
 						connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
@@ -80,8 +79,6 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("download")==0){
-		//cout<<tokens.size()<<endl;
-		//cout<<tokens[1]<<"-"<<tokens[2]<<"-"<<tokens[3]<<"-"<<tokens[4]<<"-"<<tokens[5]<<"-"<<tokens[6]<<endl;
 		if(role=='c' ){
 			if((tokens.size()-1)%2==0 && tokens.size()>1 && tokens.size()<8){
 				int till=(tokens.size()-1)/2,i=1,j=1;
@@ -474,6 +471,7 @@ bool getData(int fd){
 void fileData(int fd,string filename){
 	int data;
 	int bytes=0;
+	float tsec,bitrate;
 	struct timeval start,end;
    	unsigned long tx,ty;
 	FILE *pfile;
@@ -498,7 +496,10 @@ void fileData(int fd,string filename){
     FD_CLR(fd, &fdreads);
     gettimeofday(&end, NULL);
 	ty=end.tv_usec;
-	cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
+	tsec=(float)(ty-tx)/1000000;
+	bitrate=(bytes*8)/tsec;
+	//cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
+    cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
     if(rename("mnctmp.dat", (filename+"1").c_str())==0)
     	cout<<"Renamed "<<endl;
 
@@ -634,8 +635,6 @@ bool sendFile(string ipaddr,string porta,string file){
    			cout<<"No such file"<<endl;
    			return false;
    		}
-   //serverip=ipaddr;
-   //serverport=porta;
    struct addrinfo hints, *re;
    memset(&hints, 0, sizeof hints);
    hints.ai_family = AF_UNSPEC;
@@ -647,15 +646,11 @@ bool sendFile(string ipaddr,string porta,string file){
    if(conn>-1){
    		int d;
    		int bytes=0;
-   		long lsize;
+   		float tsec,bitrate;
    		void *buffer ;
    		struct timeval start,end;
    		unsigned long tx,ty;
-   		fseek (pfile , 0 , SEEK_END);
-  		lsize = ftell (pfile);
-  		rewind (pfile);
-  		//buffer = (char*) malloc (sizeof(char)*lsize);
-  		buffer=malloc(filebuffer);
+   		buffer=malloc(filebuffer);
   		string filename="dplz_"+string(port)+"|"+myip+"*"+file;
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
@@ -678,7 +673,9 @@ bool sendFile(string ipaddr,string porta,string file){
 	   }
 	   gettimeofday(&end, NULL);
 	   ty=end.tv_usec;
-	   cout<<"It took "<<(ty-tx)<<" microseconds to upload "<<bytes<<" bytes"<<endl;
+	   tsec=(float)(ty-tx)/1000000;
+	   bitrate=(bytes*8)/tsec;
+	   cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
 	   close(sockfd);	
 	   free(buffer);
 	   return true;

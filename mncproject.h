@@ -157,7 +157,7 @@ string getMyIp()
     // const char* p = inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
     // printf("%s\n",buffer );
     // close(sock);
-    struct sockaddr_in servaddr,cliaddr;
+    struct sockaddr_in servaddr;
 	int sockfd=socket(AF_INET,SOCK_DGRAM,0);
     bzero(&servaddr,sizeof(servaddr));
     int optval=1;
@@ -207,10 +207,6 @@ void formPeerVector(string str){
 			addConnection(ip, port);
 		}
 	}
-}
-
-string formRegString(string ip,string port,string ){
-
 }
 
 std::vector<std::string> tokenize(std::string str,std::string delim){
