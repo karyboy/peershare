@@ -34,7 +34,10 @@ void handleCommand(char ccmd[100]){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3){
 				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
 				if(checkConnection(tokens[1], tokens[2]) && !checkConnectd(tokens[1], tokens[2]) && (tokens[1]!=myip || tokens[2]!=string(port)))
-					connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
+					if(connectd.size()<5)
+						connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
+					else
+						cout<<"Max connections reached"<<endl;
 				else
 					cout<<"Connection not on List or Already Connected"<<endl;
 			}
@@ -379,7 +382,7 @@ bool getData(int fd){
 	else if(cmd.find("connect")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
-		if(checkConnection(ip, p)){
+		if(checkConnection(ip, p) && connectd.size()<5){
 			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
 			close(fd);
