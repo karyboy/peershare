@@ -49,12 +49,14 @@ string getDomainName(string url){
 	struct in_addr ipv4addr;
 	inet_pton(AF_INET, url.c_str(), &ipv4addr);
 	he = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
-	test=string(he->h_name);
-	return string(he->h_name);
+	if(he==NULL)
+		return string(he->h_name);
+	else
+		return "NA";
 }
 
 vector<string> addConnection(string ipaddr,string port){
-	vector<string> conn(3);
+	vector<string> conn(4);
 	conn[1]=ipaddr;
 	conn[2]=port;
 	int id=connections.size()+1;
@@ -241,7 +243,7 @@ void tester (){
 }
 
 void addConnectd(string ipaddr,string port,int fd){
-	vector<string> conn(4);
+	vector<string> conn(5);
 	conn[1]=ipaddr;
 	conn[2]=port;
 	stringstream ss;
