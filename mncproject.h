@@ -202,6 +202,21 @@ std::vector<std::string> tokenize(std::string str,std::string delim){
 	}
 }
 
+std::vector<std::string> tokenize2(std::string str,std::string delim){
+	size_t f1=0,f2=0;
+	vector<std::string> toks(0);
+	while((f1=str.find_first_of(delim,f1+1))!=string::npos){
+			string o=str.substr(f2,f1-f2);
+			toks.push_back(o);
+			f2=f1+1;
+	}
+	string o=str.substr(f2,str.length()-f2);
+	toks.push_back(o);
+	return toks;
+}
+
+
+
 string getDomainName(char *url){
 	struct hostent *he;
 	struct in_addr ipv4addr;

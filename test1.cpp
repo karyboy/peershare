@@ -2,12 +2,10 @@
 #include "mncproject.h"
 
 int main(){
-	string str="[192.168.1.4|9999][192.168.1.4|7777]";
-	addServer();
-	formPeerVector(str);
-	for(int i=0;i<connections.size();i++){
-		connections[i][2]="000";
-		//cout<<connections[i][2]<<endl;
+	string str="download 21 a.txt 3 b.txt 4 c.txt";
+	vector<string> v=tokenize2(str, " ");
+	for(int i=0;i<v.size();i++){
+		cout<<v.at(i)<<endl;
 	}
-	traverseConnections();
+	cout<<v.size();
 }

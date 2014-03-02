@@ -95,6 +95,8 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("download")==0){
+		cout<<tokens.size()<<endl;
+		cout<<tokens[1]<<"-"<<tokens[2]<<"-"<<tokens[3]<<"-"<<tokens[4]<<"-"<<tokens[5]<<"-"<<tokens[6]<<endl;
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0)
 				requestDownload(tokens[1], tokens[2]);
