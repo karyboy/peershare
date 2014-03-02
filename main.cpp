@@ -404,6 +404,9 @@ bool getData(int fd){
 
 void fileData(int fd){
 	int data;
+	int bytes=0;
+	struct timeval start,end;
+   	unsigned long tx,ty;
 	FILE *pfile;
 	void *p;
 	p = malloc(3000);
@@ -413,17 +416,23 @@ void fileData(int fd){
 	}
 
 	char filename[100];
-  	int fname=read(fd,filename,100);
+	int fname=read(fd,filename,100);
   	cout<<"Got the filename "<<filename<<endl;
+  	gettimeofday(&start, NULL);
+  	tx=start.tv_usec;
 	while((data=read(fd,p,filebuffer))>0){
 		cout<<"Reading ho rhi hai "<<data<<endl;
 		fwrite(p, 1, data, pfile);
+		bytes+=data;
 	}
 	cout<<"socket read done"<<endl;
 	fclose(pfile);
 	close(fd);
     FD_CLR(fd, &fdreads);
     free(p);
+    gettimeofday(&end, NULL);
+	ty=end.tv_usec;
+	cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
     if(rename("mnctmp.dat", strcat(filename,"1"))==0)
     	cout<<"Renamed "<<endl;
 
@@ -554,8 +563,11 @@ bool sendFile(string ipaddr,string porta,string file){
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
    if(conn>-1){
    		int d;
+   		int bytes=0;
    		long lsize;
    		void *buffer ;
+   		struct timeval start,end;
+   		unsigned long tx,ty;
    		fseek (pfile , 0 , SEEK_END);
   		lsize = ftell (pfile);
   		rewind (pfile);
@@ -563,11 +575,14 @@ bool sendFile(string ipaddr,string porta,string file){
   		buffer=malloc(filebuffer);
   		string filename=file;
   		int fname=write(sockfd,filename.c_str(),100);
+  		gettimeofday(&start, NULL);
+  		tx=start.tv_usec;
   		cout<<"File extension "<<fname<<endl;
    		while((d=fread(buffer, 1, filebuffer, pfile))>0){
    			cout<<"file read "<<d<<endl;
    			int data=write(sockfd,buffer,d);
    			cout<<"socket written "<<d<<endl;
+   			bytes+=d;
    		}
    	   printf("sent the file\n");
 	   shutdown(sockfd, SHUT_WR);
@@ -578,6 +593,9 @@ bool sendFile(string ipaddr,string porta,string file){
 	   		if(!r)
 	   			break;
 	   }
+	   gettimeofday(&end, NULL);
+	   ty=end.tv_usec;
+	   cout<<"It took "<<(ty-tx)<<" microseconds to upload "<<bytes<<" bytes"<<endl;
 	   close(sockfd);	
 	   free(buffer);
 	   return true;
