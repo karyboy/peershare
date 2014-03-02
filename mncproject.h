@@ -50,9 +50,9 @@ string getDomainName(string url){
 	inet_pton(AF_INET, url.c_str(), &ipv4addr);
 	he = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
 	if(he==NULL)
-		return string(he->h_name);
-	else
 		return "NA";
+	else
+		return string(he->h_name);
 }
 
 vector<string> addConnection(string ipaddr,string port){
