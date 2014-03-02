@@ -569,9 +569,8 @@ int handleNewConnection(){
 }
 
 void registerWithServer(string ipaddr,string porta){
-   serverip=ipaddr;
-   serverport=porta;
    struct addrinfo hints, *re;
+   char ipstr[INET_ADDRSTRLEN];
    memset(&hints, 0, sizeof hints);
    hints.ai_family = AF_UNSPEC;
    hints.ai_socktype = SOCK_STREAM;
@@ -589,8 +588,14 @@ void registerWithServer(string ipaddr,string porta){
    // servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
    // servaddr.sin_port=htons(atoi(porta.c_str()));
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
+   struct sockaddr_in *ipv = (struct sockaddr_in *)re->ai_addr; 
+   struct in_addr  *addr;
+   addr = &(ipv->sin_addr);
+   inet_ntop(re->ai_family, addr, ipstr, INET_ADDRSTRLEN);
    //int conn=connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
    if(conn>-1){
+   		serverip=ipstr;
+   		serverport=porta;
    		addServer();
    		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
 	   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
