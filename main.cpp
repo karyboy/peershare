@@ -732,6 +732,7 @@ void connectT(string ipaddr,string porta,string msg){
 
 void connectTo(string ipaddr,string porta,string msg){
    struct addrinfo hints, *re;
+   char ipstr[INET_ADDRSTRLEN];
    memset(&hints, 0, sizeof hints);
    hints.ai_family = AF_UNSPEC;
    hints.ai_socktype = SOCK_STREAM;
@@ -739,10 +740,15 @@ void connectTo(string ipaddr,string porta,string msg){
    int outa=getaddrinfo(ipaddr.c_str(), porta.c_str(), &hints, &re);
    int sockfd=socket(re->ai_family,re->ai_socktype,re->ai_protocol);
    int conn=connect(sockfd, re->ai_addr, re->ai_addrlen);
+   struct sockaddr_in *ipv = (struct sockaddr_in *)re->ai_addr; 
+   struct in_addr  *addr;
+   addr = &(ipv->sin_addr);
+   inet_ntop(re->ai_family, addr, ipstr, INET_ADDRSTRLEN);
+   cout<<"-->"<<ipstr<<endl;
    if(conn>-1){
    	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
    	   if(data>0){
-   	   		addPermanent(ipaddr, porta, sockfd);
+   	   		addPermanent(ipstr, porta, sockfd);
 	   		printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
    	   }	
 	   shutdown(sockfd, SHUT_WR);
