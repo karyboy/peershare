@@ -18,7 +18,10 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("register")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3)
-				registerWithServer(tokens[1],tokens[2]);
+				if(!checkConnection(tokens[1], tokens[2]) && (tokens[1]!=myip || tokens[2]!=string(port)))
+					registerWithServer(tokens[1],tokens[2]);
+				else
+					cout<<"Already Registered"<<endl;
 			else
 				cout<<"BAD Parameters\n";
 		}
@@ -30,10 +33,10 @@ void handleCommand(char ccmd[100]){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()==3){
 				//cout<<tokens[1]<<"--"<<tokens[2]<<endl;
-				if(checkConnection(tokens[1], tokens[2]))
+				if(checkConnection(tokens[1], tokens[2]) && !checkConnectd(tokens[1], tokens[2]) && (tokens[1]!=myip || tokens[2]!=string(port)))
 					connectTo(tokens[1], tokens[2], "connect_"+string(port)+"|"+myip);
 				else
-					cout<<"Connection not on List"<<endl;
+					cout<<"Connection not on List or Already Connected"<<endl;
 			}
 			else
 				cout<<"BAD Parameters\n";
