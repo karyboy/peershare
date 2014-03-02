@@ -44,6 +44,15 @@ vector < vector<string> > connections;
 
 vector < vector<string> > connectd;
 
+string getDomainName(string url){
+	struct hostent *he;
+	struct in_addr ipv4addr;
+	inet_pton(AF_INET, url.c_str(), &ipv4addr);
+	he = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
+	test=string(he->h_name);
+	return string(he->h_name);
+}
+
 vector<string> addConnection(string ipaddr,string port){
 	vector<string> conn(3);
 	conn[1]=ipaddr;
@@ -52,6 +61,7 @@ vector<string> addConnection(string ipaddr,string port){
 	char ids[10];
 	sprintf(ids, "%d", id);
 	conn[0]=string(ids);
+	conn[3]=getDomainName(ipaddr);
 	connections.push_back(conn);
 	return conn;
 }
@@ -144,7 +154,7 @@ string getMyIp()
 void traverseConnections(){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
-		printf("%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str() );
+		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
 	}
 }
 
@@ -215,17 +225,6 @@ std::vector<std::string> tokenize2(std::string str,std::string delim){
 	return toks;
 }
 
-
-
-string getDomainName(char *url){
-	struct hostent *he;
-	struct in_addr ipv4addr;
-	inet_pton(AF_INET, url, &ipv4addr);
-	he = gethostbyaddr(&ipv4addr, sizeof ipv4addr, AF_INET);
-	test=string(he->h_name);
-	return string(he->h_name);
-}
-
 bool checkConnection(string ip,string port){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
@@ -253,6 +252,7 @@ void addConnectd(string ipaddr,string port,int fd){
 	char ids[10];
 	sprintf(ids, "%d", id);
 	conn[0]=string(ids);
+	conn[4]=getDomainName(ipaddr);
 	connectd.push_back(conn);
 }
 
@@ -265,7 +265,7 @@ void traverseConnectd(){
 	cout<<"connectd"<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
-		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
+		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[4].c_str() );
 	}
 }
 

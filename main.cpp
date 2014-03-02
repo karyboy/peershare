@@ -59,7 +59,7 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("list")==0){
-		traverseConnections();
+		traverseConnectd();
 	}
 	else if(cmd.compare("terminate")==0){
 		if(role=='c'){
@@ -113,7 +113,7 @@ void handleCommand(char ccmd[100]){
 		printf("\nCreated by - %s\nUBIT - %s\nEmail - %s\n\n","Karnesh Mehra","karneshm","karneshm@buffalo.edu" );
 	}
 	else if(cmd.compare("test")==0){
-		traverseConnectd();
+		traverseConnections();
 	}
 	else{
 		printf("Command Not Found\n");
