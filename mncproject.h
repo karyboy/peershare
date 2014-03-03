@@ -197,7 +197,7 @@ void formPeerVector(string str){
 		int subpos=tmp.find_first_of("|");
 		string ip=tmp.substr(0,subpos);
 		string port=tmp.substr(subpos+1,str.length());
-		if(port!=string(::port)){    ///  compare ip as well on student servers {ip!=myip && } 
+		if(port!=string(::port) || ip!=myip){    ///  compare ip as well on student servers {ip!=myip && } 
 			addConnection(ip, port);
 		}
 	}
