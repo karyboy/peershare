@@ -661,7 +661,7 @@ bool sendFile(string ipaddr,string porta,string file){
    		struct timeval start,end;
    		unsigned long tx,ty;
    		buffer=malloc(filebuffer);
-  		string filename="dplz_"+string(port)+"|"+myip+"*"+file;
+  		string filename="dplz_"+string(port)+"|"+myip+"*"+getFileName(file);
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
   		tx=start.tv_usec;

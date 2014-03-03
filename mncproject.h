@@ -82,6 +82,11 @@ int strToInt(string str){
 	return atoi(str.c_str());
 }
 
+string getFileName(string fullpath){
+	int i=fullpath.rfind("/");
+	return fullpath.substr(i+1);
+}
+
 vector<string> addConnection(string ipaddr,string port){
 	vector<string> conn(4);
 	conn[1]=ipaddr;
