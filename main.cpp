@@ -382,6 +382,7 @@ bool getData(int fd){
 		string p=cmd.substr(cmd.find("_")+1,cmd.find("|")-cmd.find("_")-1);
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		if(checkConnection(ip, p) && connectd.size()<4){
+			int dat=write(fd,"room",30);
 			memset(buf, 0, sizeof(buf));
 			addPermanent(ip, p, fd);
 			close(fd);
@@ -780,7 +781,7 @@ void connectTo(string ipaddr,string porta,string msg){
 	   			}
 	   			else{
 	   				if(data>0){
-   	   					addPermanent(ipstr, porta, sockfd);
+	   					addPermanent(ipstr, porta, sockfd);
 	   					printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
    	   				}
    	   				break;
