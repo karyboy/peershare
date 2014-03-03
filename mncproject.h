@@ -240,7 +240,7 @@ std::vector<std::string> tokenize2(std::string str,std::string delim){
 bool checkConnection(string ip,string port){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
-		if(tmp[1]==ip && tmp[2]==port){
+		if((tmp[1]==ip && tmp[2]==port) || (tmp[3]==ip && tmp[2]==port) ){
 			//cout<<"this is in"<<endl;
 			return true;
 		}
@@ -307,7 +307,7 @@ bool checkConnectd(string ip,string port){
 	//cout<<"\nFD to Check by string "<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
-		if(ip==tmp[1] && port==tmp[2]){
+		if((ip==tmp[1] && port==tmp[2]) || (ip==tmp[4] && port==tmp[2])){
 			return true;
 		}
 		//printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
