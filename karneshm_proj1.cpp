@@ -490,7 +490,7 @@ void fileData(int fd,string filename){
 	}
   	//cout<<"Got the filename "<<filename<<endl;
   	gettimeofday(&start, NULL);
-  	tx=start.tv_usec;
+  	tx=(1000000*start.tv_sec)+start.tv_usec;
 	while((data=read(fd,p,filebuffer))>0){
 		//cout<<"Reading ho rhi hai "<<data<<endl;
 		fwrite(p, 1, data, pfile);
@@ -502,7 +502,7 @@ void fileData(int fd,string filename){
 	close(fd);
     FD_CLR(fd, &fdreads);
     gettimeofday(&end, NULL);
-	ty=end.tv_usec;
+	ty=(1000000*end.tv_sec)+end.tv_usec;
 	tsec=(float)(ty-tx)/1000000;
 	bitrate=(bytes*8)/tsec;
 	//cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
@@ -664,7 +664,7 @@ bool sendFile(string ipaddr,string porta,string file){
   		string filename="dplz_"+string(port)+"|"+myip+"*"+getFileName(file);
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
-  		tx=start.tv_usec;
+  		tx=(1000000*start.tv_sec)+start.tv_usec;
   		//cout<<"File extension "<<fname<<endl;
    		while((d=fread(buffer, 1, filebuffer, pfile))>0){
    			//cout<<"file read "<<d<<endl;
@@ -683,7 +683,7 @@ bool sendFile(string ipaddr,string porta,string file){
 	   }
 	   cout<<"Uploaded the file to "<<ipaddr<<endl;
 	   gettimeofday(&end, NULL);
-	   ty=end.tv_usec;
+	   ty=(1000000*end.tv_sec)+end.tv_usec;
 	   tsec=(float)(ty-tx)/1000000;
 	   bitrate=(bytes*8)/tsec;
 	   cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
