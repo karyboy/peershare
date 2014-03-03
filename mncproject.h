@@ -75,6 +75,10 @@ string getDomainName(string url){
 		return string(he->h_name);
 }
 
+int strToInt(string str){
+	return atoi(str.c_str());
+}
+
 vector<string> addConnection(string ipaddr,string port){
 	vector<string> conn(4);
 	conn[1]=ipaddr;
@@ -138,25 +142,11 @@ string getIpMy(int fd){
 
 string getMyIp() 
 {
-   char buffer[INET_ADDRSTRLEN];
-   string ipaddr="8.8.8.8";
-   string porta="53";
-    // int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    
-    // const char* kGoogleDnsIp = "8.8.8.8";
-    // uint16_t kDnsPort = 53;
-    // struct sockaddr_in serv;
-    // memset(&serv, 0, sizeof(serv));
-    // serv.sin_family = AF_INET;
-    // serv.sin_addr.s_addr = inet_addr(kGoogleDnsIp);
-    // serv.sin_port = htons(kDnsPort);
-    // int err = connect(sock, (const sockaddr*) &serv, sizeof(serv));
+    char buffer[INET_ADDRSTRLEN];
+    string ipaddr="8.8.8.8";
+    string porta="53";
     sockaddr_in name;
     socklen_t namelen = sizeof(name);
-    // err = getsockname(sock, (sockaddr*) &name, &namelen);
-    // const char* p = inet_ntop(AF_INET, &name.sin_addr, buffer, INET_ADDRSTRLEN);
-    // printf("%s\n",buffer );
-    // close(sock);
     struct sockaddr_in servaddr;
 	int sockfd=socket(AF_INET,SOCK_DGRAM,0);
     bzero(&servaddr,sizeof(servaddr));
@@ -359,25 +349,32 @@ vector<string> getConnection(string ip,string port){
 	return tmp;
 }
 
-void reConnectd(){
+void reConnectd(int rid){
 	for(int i=1;i<connectd.size();i++){
-		connectd[i][0]=i+1;
+		cout<<"-->"<<connectd[i][0]<<endl;
+		char ids[10];
+		if(strToInt(connectd[i][0])>rid){
+			int newid=strToInt(connectd[i][0])-1;
+			sprintf(ids, "%d", newid);
+			connectd[i][0]= string(ids);
+		}
+		
 	}
 }
 
 void removeConnectd(string id){
+	string rid;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		if(tmp[0]==id){
+			rid=tmp[0];
 			cout<<"Removing this id"<<endl;
 			connectd.erase(connectd.begin()+i);
 		}
 	}
-	reConnectd();
+	reConnectd(strToInt(rid));
 }
 
-int strToInt(string str){
-	return atoi(str.c_str());
-}
+
 
 #endif
