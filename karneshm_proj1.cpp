@@ -51,7 +51,10 @@ void handleCommand(char ccmd[100]){
 		}
 	}
 	else if(cmd.compare("list")==0){
-		traverseConnectd();
+		if(role=='s')
+			traverseConnections();
+		else
+			traverseConnectd();
 	}
 	else if(cmd.compare("terminate")==0){
 		if(role=='c'){
