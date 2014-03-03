@@ -1,3 +1,6 @@
+// Author - Karnesh Mehra
+// karneshm@buffalo.edu
+
 #include "mncproject.h"
 #define arg_no 3
 ;
