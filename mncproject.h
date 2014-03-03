@@ -305,6 +305,7 @@ void traverseConnectd(){
 void closeAllConnected(){
 	for(int i=1;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
+		//cout<<"-->"<<tmp[0]<<"->"<<tmp[2]<<endl;
 		terminate(tmp[0]);
 	}
 }

@@ -114,7 +114,7 @@ void handleCommand(char ccmd[100]){
 		traverseConnections();
 	}
 	else{
-		printf("Command Not Found\n");
+		printf("Command Not Found(Type help - All commands are lowercased)\n");
 	}
 }
 
