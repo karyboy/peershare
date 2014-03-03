@@ -134,7 +134,8 @@ int listener(){
 		return 0;
 	}
     int l=listen(listenfd,10);
-	printf("__%d__%d__%d\n", listenfd,b,l);	
+	//printf("__%d__%d__%d\n", listenfd,b,l);	
+    cout<<"This server is listening on port "<<port<<endl;
     freeaddrinfo(res);
 	struct timeval t ;
 	t.tv_sec=5;
@@ -179,7 +180,7 @@ int listener(){
 	    		if(connlist[i]!=-2){
 	    			//printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
-	    				printf("Data incoming\n");
+	    				//printf("Data incoming\n");
 	   					//FD_CLR(connlist[i], &fdreads);
 	   					getData(connlist[i]);
 						//fileData(connlist[i]);
@@ -217,7 +218,8 @@ int clistener(){
 		return 0;
 	}
     int l=listen(listenfd,10);
-	printf("__%d__%d__%d\n", listenfd,b,l);	
+	//printf("__%d__%d__%d\n", listenfd,b,l);
+	cout<<"This client is listening on port "<<port<<endl;	
     freeaddrinfo(res);
 	struct timeval t ;
 	t.tv_sec=5;
@@ -261,18 +263,7 @@ int clistener(){
 	    		if(connlist[i]!=-2){
 	    			//printf("check for data--%d\n",i);
 	    			if(FD_ISSET(connlist[i], &fdreads)){
-	    				printf("Data incoming\n");
-		   				//FD_CLR(connlist[i], &fdreads);
-	   					// if(checkFd(connlist[i])){
-	   					// 	cout<<"File coming in"<<endl;
-	   					// 	fileData(connlist[i]);
-	   					// 	cout<<"Yahan aaya"<<endl;
-	   					// 	connlist[i]=-2;
-	   					// 	cout<<"yahn bhai aaya"<<endl;
-		   				// 	assignMaxFD();
-		   				// 	cout<<"Yahan bhi aaya"<<endl;
-	   					// }
-	   					// else{
+	    				//printf("Data incoming\n");
 	   						getData(connlist[i]);
 							connlist[i]=-2;
 		   					assignMaxFD();
@@ -304,7 +295,7 @@ void unFDSET(int fd){
 	for(int i=0;i<10;i++){
 		if(connlist[i]==fd){
 			connlist[i]=-2;
-			cout<<"Undone "<<fd<<endl;
+			//cout<<"Undone "<<fd<<endl;
 		}
 	}
 	assignMaxFD();
@@ -312,7 +303,7 @@ void unFDSET(int fd){
 
 bool getData(int fd){
 	int data=read(fd,buf,sizeof(buf));
-	printf("data-%s\n",buf);
+	//printf("data-%s\n",buf);
 	string cmd=string(buf);
 	//cout<<"Cmd is "<<cmd<<"\n";
 	if(cmd.find("dplz")!=string::npos){
@@ -325,7 +316,7 @@ bool getData(int fd){
 			return true;
 		}
 		else{
-			cout<<"Not in the connected list"<<endl;
+			cout<<"Not in the peer list"<<endl;
 			memset(buf, 0, sizeof(buf));
     		close(fd);
     		FD_CLR(fd, &fdreads);
@@ -343,15 +334,15 @@ bool getData(int fd){
 			close(fd);
     		FD_CLR(fd, &fdreads);
 			if(id.size()>0){
-				cout<<"id found\n";
+				cout<<"peer found\n";
 				pushUpload(id[0], filename);
 			}
 			else
-				cout<<"id not found\n";
+				cout<<"peer not found\n";
 			return true;
 		}
 		else{
-			cout<<"Not in the connected list"<<endl;
+			cout<<"Not in the peer list"<<endl;
 			memset(buf, 0, sizeof(buf));
     		close(fd);
     		FD_CLR(fd, &fdreads);
@@ -393,7 +384,7 @@ bool getData(int fd){
 			addPermanent(ip, p, fd);
 			close(fd);
     		FD_CLR(fd, &fdreads);
-    		cout<<"COnnection added"<<endl;
+    		cout<<"Peer added"<<endl;
 			return true;
 		}
 		else{
@@ -434,11 +425,11 @@ bool getData(int fd){
 			//unFDSET(strToInt(tmp[3]));
 			close(fd);
     		FD_CLR(fd, &fdreads);
-    		cout<<"Removed from here as well"<<endl;
+    		cout<<"Peer Removed -> "<<ip<<endl;
 			return false;
 		}
 		else{
-			cout<<"Not in the list"<<endl;
+			cout<<"Peer not in the list"<<endl;
 			memset(buf, 0, sizeof(buf));
     		close(fd);
     		FD_CLR(fd, &fdreads);
@@ -456,11 +447,11 @@ bool getData(int fd){
     		FD_CLR(fd, &fdreads);
     		traverseConnections();
     		sendCnxnList();
-    		cout<<"removed client from list"<<endl;
+    		cout<<"Removed client -> "<<ip<<endl;
 			return false;
 		}
 		else{
-			cout<<"Not in the list"<<endl;
+			cout<<"Client not found"<<endl;
 			memset(buf, 0, sizeof(buf));
     		close(fd);
     		FD_CLR(fd, &fdreads);
@@ -489,15 +480,15 @@ void fileData(int fd,string filename){
 	if(pfile==NULL){
 		cout<<"File problem"<<endl;
 	}
-  	cout<<"Got the filename "<<filename<<endl;
+  	//cout<<"Got the filename "<<filename<<endl;
   	gettimeofday(&start, NULL);
   	tx=start.tv_usec;
 	while((data=read(fd,p,filebuffer))>0){
-		cout<<"Reading ho rhi hai "<<data<<endl;
+		//cout<<"Reading ho rhi hai "<<data<<endl;
 		fwrite(p, 1, data, pfile);
 		bytes+=data;
 	}
-	cout<<"socket read done"<<endl;
+	//cout<<"socket read done"<<endl;
 	free(p);
 	fclose(pfile);
 	close(fd);
@@ -509,43 +500,44 @@ void fileData(int fd,string filename){
 	//cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
     cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
     if(rename("mnctmp.dat", (filename+"1").c_str())==0)
-    	cout<<"Renamed "<<endl;
+    	;//cout<<"Renamed "<<endl;
+    cout<<"Received File "<<filename<<endl;
 
 }
 
 void pushUpload(string id,string filename){
-	cout<<"push upload "<<id<<endl;
+	cout<<"uploading file to "<<id<<endl;
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
-		cout<<"id found\n";
+		//cout<<"id found\n";
 		sendFile(fd[1], fd[2], filename);
-		cout<<"sent "<<endl;
+		//cout<<"sent "<<endl;
 	}
 	else
-		cout<<"id not found\n";
+		cout<<"Peer not found\n";
 }
 
 void requestDownload(string id,string filename){
-	cout<<"request download "<<id<<endl;
+	cout<<"Requesting download from "<<id<<endl;
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
-		cout<<"id found\n";
+		//cout<<"id found\n";
 		sendMsg(fd[1], fd[2], "fplz_"+string(port)+"|"+myip+"*"+filename);
 	}
 	else
-		cout<<"id not found\n";
+		cout<<"Peer not found\n";
 }
 
 void permData(int fd){
 	int data=read(fd,buf,sizeof(buf));
-	printf("perm data-%s\n",buf);
+	//printf("perm data-%s\n",buf);
 	string cmd=string(buf);
 	memset(buf, 0, sizeof(buf));
-	cout<<"the msg is "<<cmd<<endl;
+	//cout<<"the msg is "<<cmd<<endl;
 }
 
 void addPermanent(string ip,string port,int fd){
-	cout<<"New Perm COnnection";
+	cout<<"New Peer Connected "<<ip<<"|"<<port<<endl;
 	addConnectd(ip, port, fd);
 	traverseConnectd();
 	//addToConnList(fd);
@@ -620,13 +612,14 @@ void registerWithServer(string ipaddr,string porta){
    		serverport=porta;
    		addServer();
    		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-	   	cout<<"Registered With Server"<<endl;
+	   	cout<<"Registering With Server"<<endl;
 	   //printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
 	   while(1){
 	   		int r=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<"~~"<<r<<"~~";
+	   		//cout<<"~~"<<r<<"~~";
+	   		cout<<"Registered with Server"<<endl;
 	   		if(!r)
 	   			break;
 	   }
@@ -665,22 +658,23 @@ bool sendFile(string ipaddr,string porta,string file){
   		int fname=write(sockfd,filename.c_str(),100);
   		gettimeofday(&start, NULL);
   		tx=start.tv_usec;
-  		cout<<"File extension "<<fname<<endl;
+  		//cout<<"File extension "<<fname<<endl;
    		while((d=fread(buffer, 1, filebuffer, pfile))>0){
-   			cout<<"file read "<<d<<endl;
+   			//cout<<"file read "<<d<<endl;
    			int data=write(sockfd,buffer,d);
-   			cout<<"socket written "<<d<<endl;
+   			//cout<<"socket written "<<d<<endl;
    			bytes+=d;
    		}
-   	   printf("sent the file\n");
+   	   //printf("sent the file\n");
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
 	   while(1){
 	   		int r=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<"~~"<<r<<"~~";
+	   		//cout<<"~~"<<r<<"~~";
 	   		if(!r)
 	   			break;
 	   }
+	   cout<<"Uploaded the file"<<endl;
 	   gettimeofday(&end, NULL);
 	   ty=end.tv_usec;
 	   tsec=(float)(ty-tx)/1000000;
@@ -724,7 +718,7 @@ void sendMsg(string ipaddr,string porta,string msg){
 	    char closebuf[100];
 		   while(1){
 		   		int res=read(sockfd,closebuf,sizeof(closebuf));
-		   		cout<<"~~"<<res<<"~~";
+		   		//cout<<"~~"<<res<<"~~";
 		   		if(!res)
 		   			break;
 		   }
@@ -751,7 +745,7 @@ void connectTo(string ipaddr,string porta,string msg){
    struct in_addr  *addr;
    addr = &(ipv->sin_addr);
    inet_ntop(re->ai_family, addr, ipstr, INET_ADDRSTRLEN);
-   cout<<"-->"<<ipstr<<endl;
+   //cout<<"-->"<<ipstr<<endl;
    if(conn>-1){
    	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));	
 	   shutdown(sockfd, SHUT_WR);
@@ -787,16 +781,16 @@ void connectTo(string ipaddr,string porta,string msg){
 }
 
 void sendTo(string id,string msg){
-	cout<<"sendto "<<id<<"--"<<msg<<endl;
+	//cout<<"sendto "<<id<<"--"<<msg<<endl;
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
-		cout<<"id found\n";
+		//cout<<"id found\n";
 		//int data=write(strToInt(fd[3]),msg.c_str(),strlen(msg.c_str()));
 		sendMsg(fd[1], fd[2], msg);
-		cout<<"sent "<<endl;
+		//cout<<"sent "<<endl;
 	}
 	else
-		cout<<"id not found\n";
+		cout<<"Peer not found\n";
 	
 }
 
@@ -812,13 +806,13 @@ void handleExit(){
 void terminate(string id){
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
-		cout<<"id found\n";
+		//cout<<"id found\n";
 		sendTo(id,"break_"+string(port)+"|"+myip );
 		// unFDSET(strToInt(fd[3]));
 	    removeConnectd(id);
 	}
 	else{
-		cout<<"id not found\n";
+		cout<<"Peer not found\n";
 	}
 }
 
