@@ -334,7 +334,7 @@ bool getData(int fd){
 			close(fd);
     		FD_CLR(fd, &fdreads);
 			if(id.size()>0){
-				cout<<"peer found\n";
+				//cout<<"peer found\n";
 				pushUpload(id[0], filename);
 			}
 			else
@@ -354,6 +354,7 @@ bool getData(int fd){
 		string ip=cmd.substr(cmd.find("|")+1,cmd.length()-cmd.find("|"));
 		//cout<<"port is"<<p<<endl;
 		//cout<<"ip is "<<myip<<endl;
+		cout<<"New Registeration from "<<ip<<endl;
     	addConnection(ip, p);
     	memset(buf, 0, sizeof(buf));
     	close(fd);
@@ -366,6 +367,7 @@ bool getData(int fd){
 	else if(cmd.find("peers")!=string::npos){
 		string p=cmd.substr(cmd.find("_")+1,cmd.length());
     	//cout<<"\nyooooooo-"<<p<<"\n";
+    	cout<<"Updated Client List Received"<<endl;
     	emptyConnections();
     	formPeerVector(p);
     	memset(buf, 0, sizeof(buf));
@@ -425,7 +427,7 @@ bool getData(int fd){
 			//unFDSET(strToInt(tmp[3]));
 			close(fd);
     		FD_CLR(fd, &fdreads);
-    		cout<<"Peer Removed -> "<<ip<<endl;
+    		//cout<<"Peer Removed -> "<<ip<<endl;
 			return false;
 		}
 		else{
@@ -498,15 +500,14 @@ void fileData(int fd,string filename){
 	tsec=(float)(ty-tx)/1000000;
 	bitrate=(bytes*8)/tsec;
 	//cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
+    cout<<"Received File "<<filename<<endl;
     cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
     if(rename("mnctmp.dat", (filename+"1").c_str())==0)
-    	;//cout<<"Renamed "<<endl;
-    cout<<"Received File "<<filename<<endl;
-
+    	;//cout<<"Renamed "<<endl
 }
 
 void pushUpload(string id,string filename){
-	cout<<"uploading file to "<<id<<endl;
+	//cout<<"uploading file to "<<id<<endl;
 	vector<string> fd=getFd(id);
 	if(fd.size()>0){
 		//cout<<"id found\n";
@@ -539,7 +540,7 @@ void permData(int fd){
 void addPermanent(string ip,string port,int fd){
 	cout<<"New Peer Connected "<<ip<<"|"<<port<<endl;
 	addConnectd(ip, port, fd);
-	traverseConnectd();
+	//traverseConnectd();
 	//addToConnList(fd);
 	// if(checkFd(ip,port))
 	// 	connectTo(ip, port,"connect_"+string(port)+"|"+myip);
@@ -569,7 +570,7 @@ void addToConnList(int fd){
 }
 
 int handleNewConnection(){
-    printf("THere is a new connection\n");
+    //printf("THere is a new connection\n");
     conn_size=sizeof conns;
     int newfd=accept(listenfd,(struct sockaddr *)&conns, &conn_size);
     char buf[200];
@@ -612,7 +613,7 @@ void registerWithServer(string ipaddr,string porta){
    		serverport=porta;
    		addServer();
    		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-	   	cout<<"Registering With Server"<<endl;
+	   	//cout<<"Registering With Server"<<endl;
 	   //printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
@@ -674,7 +675,7 @@ bool sendFile(string ipaddr,string porta,string file){
 	   		if(!r)
 	   			break;
 	   }
-	   cout<<"Uploaded the file"<<endl;
+	   cout<<"Uploaded the file to "<<ipaddr<<endl;
 	   gettimeofday(&end, NULL);
 	   ty=end.tv_usec;
 	   tsec=(float)(ty-tx)/1000000;
@@ -760,7 +761,7 @@ void connectTo(string ipaddr,string porta,string msg){
 	   			else{
 	   				if(data>0){
 	   					addPermanent(ipstr, porta, sockfd);
-	   					cout<<"Connected to Peer"<<endl;
+	   					cout<<"Peer Added"<<endl;
 	   					//printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
    	   				}
    	   				break;

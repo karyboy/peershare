@@ -164,7 +164,7 @@ string getMyIp()
 }
 
 void traverseConnections(){
-	cout<<"Server List"<<endl;
+	//cout<<"Server List"<<endl;
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
 		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
@@ -271,7 +271,7 @@ void addServer(){
 }
 
 void traverseConnectd(){
-	cout<<"Open Connections"<<endl;
+	//cout<<"Open Connections"<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[4].c_str() );
