@@ -246,7 +246,7 @@ std::vector<std::string> tokenize2(std::string str,std::string delim){
 bool checkConnection(string ip,string port){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
-		if(tmp[1]==ip && tmp[2]==port){
+		if(tmp[1]==ip && tmp[2]==port && tmp[0]!="1"){
 			cout<<"this is in"<<endl;
 			return true;
 		}
