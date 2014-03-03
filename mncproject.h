@@ -124,7 +124,7 @@ string getIpPeer(int fd){
 	struct sockaddr_in *s = (struct sockaddr_in *)&peername;
     //port = ntohs(s->sin_port);
     inet_ntop(AF_INET, &s->sin_addr, pipaddr, sizeof pipaddr); 
-    cout<<"{===="<<pipaddr<<"}";
+    //cout<<"{===="<<pipaddr<<"}";
     return pipaddr;
 }
 
@@ -164,6 +164,7 @@ string getMyIp()
 }
 
 void traverseConnections(){
+	cout<<"Server List"<<endl;
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
 		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[3].c_str() );
@@ -237,7 +238,7 @@ bool checkConnection(string ip,string port){
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
 		if(tmp[1]==ip && tmp[2]==port && tmp[0]!="1"){
-			cout<<"this is in"<<endl;
+			//cout<<"this is in"<<endl;
 			return true;
 		}
 	}
@@ -270,6 +271,7 @@ void addServer(){
 }
 
 void traverseConnectd(){
+	cout<<"Open Connections"<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		printf("%s|%s|%s|%s\n",tmp[0].c_str(),tmp[1].c_str(),tmp[2].c_str(),tmp[4].c_str() );
@@ -284,7 +286,7 @@ void closeAllConnected(){
 }
 
 bool checkFd(int fd){
-	cout<<"\nFD to Check "<<fd<<endl;
+	//cout<<"\nFD to Check "<<fd<<endl;
 	stringstream ss;
 	ss << fd;
 	string ss1=ss.str();
@@ -299,7 +301,7 @@ bool checkFd(int fd){
 }
 
 bool checkConnectd(string ip,string port){
-	cout<<"\nFD to Check by string "<<endl;
+	//cout<<"\nFD to Check by string "<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmp=connectd[i];
 		if(ip==tmp[1] && port==tmp[2]){
@@ -312,11 +314,11 @@ bool checkConnectd(string ip,string port){
 
 vector<string> getFd(string id){
 	vector<string> tmp;
-	cout<<"\ngetting fd "<<connectd.size()<<endl;
+	//cout<<"\ngetting fd "<<connectd.size()<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmpa=connectd[i];
 		if(id==tmpa[0]){
-			cout<<"YOYo in id"<<endl;
+			//cout<<"YOYo in id"<<endl;
 			tmp=connectd[i];
 		}
 			
@@ -327,7 +329,7 @@ vector<string> getFd(string id){
 
 vector<string> getFd(string ip,string port){
 	vector<string> tmp;
-	cout<<"\ngetting fd by ip "<<endl;
+	//cout<<"\ngetting fd by ip "<<endl;
 	for(int i=0;i<connectd.size();i++){
 		vector<string> tmpa=connectd[i];
 		if(ip==tmpa[1] && port==tmpa[2])
@@ -351,7 +353,7 @@ vector<string> getConnection(string ip,string port){
 
 void reConnectd(int rid){
 	for(int i=1;i<connectd.size();i++){
-		cout<<"-->"<<connectd[i][0]<<endl;
+		//cout<<"-->"<<connectd[i][0]<<endl;
 		char ids[10];
 		if(strToInt(connectd[i][0])>rid){
 			int newid=strToInt(connectd[i][0])-1;
@@ -368,7 +370,7 @@ void removeConnectd(string id){
 		vector<string> tmp=connectd[i];
 		if(tmp[0]==id){
 			rid=tmp[0];
-			cout<<"Removing this id"<<endl;
+			cout<<"Removing connection with id "<<id<<endl;
 			connectd.erase(connectd.begin()+i);
 		}
 	}
