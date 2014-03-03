@@ -390,6 +390,7 @@ bool getData(int fd){
 			return true;
 		}
 		else{
+			int dat=write(fd,"noroom",30);
 			cout<<"Not in the list"<<endl;
 			memset(buf, 0, sizeof(buf));
     		close(fd);
@@ -774,8 +775,16 @@ void connectTo(string ipaddr,string porta,string msg){
    	   }	
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
+	   int r;
 	   while(1){
-	   		int r=read(sockfd,closebuf,sizeof(closebuf));
+	   		while((r=read(sockfd,closebuf,sizeof(closebuf)))>0){
+	   			if(string(closebuf)=="noroom"){
+	   				cout<<"The other side has reached its max connections, could not connect "<<endl;
+	   				break;
+	   			}
+	   			else
+	   				break;
+	   		}
 	   		cout<<">>"<<r<<"<<"<<endl;
 	   		if(!r)
 	   			break;
