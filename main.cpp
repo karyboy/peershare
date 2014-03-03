@@ -303,7 +303,7 @@ void redoFDSET(){
 void unFDSET(int fd){
 	for(int i=0;i<10;i++){
 		if(connlist[i]==fd){
-			connlist[i]==-2;
+			connlist[i]=-2;
 			cout<<"Undone "<<fd<<endl;
 		}
 	}
@@ -587,6 +587,7 @@ int handleNewConnection(){
     //printf("{{%s}}\n",buf);
     // addConnection(string(buf),string(porta));
     addToConnList(newfd);
+    return 1;
 }
 
 void registerWithServer(string ipaddr,string porta){
@@ -619,7 +620,8 @@ void registerWithServer(string ipaddr,string porta){
    		serverport=porta;
    		addServer();
    		int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-	   printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
+	   	cout<<"Registered With Server"<<endl;
+	   //printf("reg with server--%d--%d\n", strlen(msg.c_str()),data);
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
 	   while(1){
@@ -735,30 +737,6 @@ void sendMsg(string ipaddr,string porta,string msg){
 	}
 }
 
-void connectT(string ipaddr,string porta,string msg){
-	struct sockaddr_in servaddr,cliaddr;
-	int sockfd=socket(AF_INET,SOCK_STREAM,0);
-    bzero(&servaddr,sizeof(servaddr));
-    int optval=1;
-	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr=inet_addr(ipaddr.c_str());
-    servaddr.sin_port=htons(atoi(porta.c_str()));
-    connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-    int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-    addPermanent(ipaddr, porta, sockfd);
-    printf("sending msgs --%d--%d\n", strlen(msg.c_str()),data);
-    shutdown(sockfd, SHUT_WR);
-    char closebuf[100];
-	   while(1){
-	   		int res=read(sockfd,closebuf,sizeof(closebuf));
-	   		cout<<">>"<<res<<"<<"<<endl;
-	   		if(!res)
-	   			break;
-	   }
-   close(sockfd);
-}
-
 void connectTo(string ipaddr,string porta,string msg){
    struct addrinfo hints, *re;
    char ipstr[INET_ADDRSTRLEN];
@@ -788,7 +766,8 @@ void connectTo(string ipaddr,string porta,string msg){
 	   			else{
 	   				if(data>0){
 	   					addPermanent(ipstr, porta, sockfd);
-	   					printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
+	   					cout<<"Connected to Peer"<<endl;
+	   					//printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
    	   				}
    	   				break;
 	   			}
@@ -828,9 +807,6 @@ void handleExit(){
 	}
 	close(listenfd);
 	exit(1);
-}
-
-int idToFD(string id){
 }
 
 void terminate(string id){
