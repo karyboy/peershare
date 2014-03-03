@@ -1,3 +1,6 @@
+// Author - Karnesh Mehra
+// karneshm@buffalo.edu
+
 #ifndef mncproject
 #define mncproject
 
