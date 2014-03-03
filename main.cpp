@@ -723,7 +723,7 @@ void sendMsg(string ipaddr,string porta,string msg){
 		   		if(!res)
 		   			break;
 		   }
-		   cout<<endl;
+		   //cout<<endl;
 	   close(sockfd);
 	}
 	else{
