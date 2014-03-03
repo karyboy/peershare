@@ -70,7 +70,10 @@ void handleCommand(char ccmd[100]){
 	else if(cmd.compare("upload")==0){
 		if(role=='c'){
 			if(tokens[1].length()>0 && tokens[2].length()>0 && tokens.size()>1 && tokens.size()<4)
-				pushUpload(tokens[1], tokens[2]);
+				if(tokens[1]!="1")
+					pushUpload(tokens[1], tokens[2]);
+				else
+					cout<<"Cant upload to server"<<endl;
 			else
 				cout<<"BAD Parameters\n";
 		}
@@ -83,7 +86,10 @@ void handleCommand(char ccmd[100]){
 			if((tokens.size()-1)%2==0 && tokens.size()>1 && tokens.size()<8){
 				int till=(tokens.size()-1)/2,i=1,j=1;
 				while(i<=till){
-					requestDownload(tokens[j], tokens[j+1]);
+					if(tokens[j]!="1")
+						requestDownload(tokens[j], tokens[j+1]);
+					else
+						cout<<"Cant download from server"<<endl;
 					j=j+2;
 					i++;
 				}
