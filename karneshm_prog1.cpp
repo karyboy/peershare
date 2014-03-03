@@ -505,7 +505,7 @@ void fileData(int fd,string filename){
 	//cout<<"It took "<<(ty-tx)<<" microseconds to download "<<bytes<<" bytes"<<endl;
     cout<<"Received File "<<filename<<endl;
     cout<<"File size : "<<bytes<<" Bytes , Time Taken : "<<tsec<<" Seconds , Rate : "<<bitrate<<" bits/second"<<endl;
-    if(rename("mnctmp.dat", (filename+"1").c_str())==0)
+    if(rename("mnctmp.dat", (filename).c_str())==0)
     	;//cout<<"Renamed "<<endl
 }
 
