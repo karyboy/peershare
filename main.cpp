@@ -768,11 +768,7 @@ void connectTo(string ipaddr,string porta,string msg){
    inet_ntop(re->ai_family, addr, ipstr, INET_ADDRSTRLEN);
    cout<<"-->"<<ipstr<<endl;
    if(conn>-1){
-   	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));
-   	   if(data>0){
-   	   		addPermanent(ipstr, porta, sockfd);
-	   		printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
-   	   }	
+   	   int data=write(sockfd,msg.c_str(),strlen(msg.c_str()));	
 	   shutdown(sockfd, SHUT_WR);
 	   char closebuf[100];
 	   int r;
@@ -782,10 +778,16 @@ void connectTo(string ipaddr,string porta,string msg){
 	   				cout<<"The other side has reached its max connections, could not connect "<<endl;
 	   				break;
 	   			}
-	   			else
-	   				break;
+	   			else{
+	   				if(data>0){
+   	   					addPermanent(ipstr, porta, sockfd);
+	   					printf("connecting to server --%d--%d\n", strlen(msg.c_str()),data);
+   	   				}
+   	   				break;
+	   			}
+	   				
 	   		}
-	   		cout<<">>"<<r<<"<<"<<endl;
+	   		//cout<<">>"<<r<<"<<"<<endl;
 	   		if(!r)
 	   			break;
 	   }
