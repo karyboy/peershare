@@ -100,14 +100,30 @@ vector<string> addConnection(string ipaddr,string port){
 	return conn;
 }
 
+void reConnection(int rid){
+	for(int i=0;i<connections.size();i++){
+		//cout<<"-->"<<connectd[i][0]<<endl;
+		char ids[10];
+		if(strToInt(connections[i][0])>rid){
+			int newid=strToInt(connections[i][0])-1;
+			sprintf(ids, "%d", newid);
+			connections[i][0]= string(ids);
+		}
+		
+	}
+}
+
 void removeConnection(string id){
+	string rid;
 	for(int i=0;i<connections.size();i++){
 		vector<string> tmp=connections[i];
 		if(tmp[0]==id ){
+			rid=tmp[0];
 			//cout<<"removing from server "<<endl;
 			connections.erase(connections.begin()+i);
 		}
 	}
+	reConnection(strToInt(rid));
 }
 
 void emptyConnections(){
